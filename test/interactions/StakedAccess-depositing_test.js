@@ -30,6 +30,12 @@ contract('StakedAccess (core functionality)', accounts => {
     await token.approve(escrow.address, price, { from: punter })
   })
 
+  context('hasExpired', () => {
+    it('the escrow has not expired', async () => {
+      assert.isFalse(await escrow.hasExpired())
+    })
+  })
+
   context('deposit', () => {
     // deadbeat punter has has no money
     context('deadbeat punter', () => {
