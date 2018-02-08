@@ -2,8 +2,8 @@
 
 Contracts that provide access to a marketplace based on the staking of KEY by participants
 
-* `develop` — [insert circleci badge]
-* `master` — [insert circleci badge]
+* `develop` — [![CircleCI](https://circleci.com/gh/SelfKeyFoundation/staked-access/tree/develop.svg?style=svg)](https://circleci.com/gh/SelfKeyFoundation/staked-access/tree/develop)
+* `master` — [![CircleCI](https://circleci.com/gh/SelfKeyFoundation/staked-access/tree/master.svg?style=svg)](https://circleci.com/gh/SelfKeyFoundation/staked-access/tree/master)
 
 ## Overview
 
