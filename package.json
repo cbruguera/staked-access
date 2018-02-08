@@ -53,5 +53,8 @@
   "bugs": {
     "url": "https://github.com/SelfKeyFoundation/staked-access/issues"
   },
-  "homepage": "https://github.com/SelfKeyFoundation/staked-access#readme"
+  "homepage": "https://github.com/SelfKeyFoundation/staked-access#readme",
+  "dependencies": {
+    "zeppelin-solidity": "^1.6.0"
+  }
 }
