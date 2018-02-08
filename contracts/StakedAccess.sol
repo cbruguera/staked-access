@@ -140,6 +140,7 @@ contract StakedAccess is Ownable {
     {
         uint amount = balances[msg.sender];
         token.transfer(msg.sender, amount);
+        balances[msg.sender] = 0;
         KEYRetrieved(msg.sender, amount);
     }
 
@@ -168,6 +169,6 @@ contract StakedAccess is Ownable {
         view
         returns (bool)
     {
-        return now <= expiry;
+        return now > expiry;
     }
 }

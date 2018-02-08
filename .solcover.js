@@ -1,3 +1,4 @@
 module.exports = {
-  skipFiles: []
+  copyPackages: ['zeppelin-solidity'],
+  skipFiles: ['MockKEY.sol']
 }
