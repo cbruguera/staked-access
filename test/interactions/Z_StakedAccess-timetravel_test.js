@@ -1,6 +1,6 @@
 const timeTravel = require('../utils/timeTravel')
 const assertThrows = require('../utils/assertThrows')
-const { getContract, getLog } = require('../utils/txHelpers')
+const { getLog } = require('../utils/txHelpers')
 const { makeTime } = require('../utils/fakes')
 
 const MockKey = artifacts.require('./mocks/MockKEY.sol')

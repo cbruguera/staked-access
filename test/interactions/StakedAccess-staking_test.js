@@ -1,7 +1,7 @@
 // ref https://medium.com/level-k/testing-smart-contracts-with-truffle-7849b3d9961
 
 const assertThrows = require('../utils/assertThrows')
-const { getContract, getLog } = require('../utils/txHelpers')
+const { getLog } = require('../utils/txHelpers')
 const { makeTime } = require('../utils/fakes')
 
 const MockKey = artifacts.require('./mocks/MockKEY.sol')
