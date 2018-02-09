@@ -2,12 +2,11 @@
 
 const assertThrows = require('../utils/assertThrows')
 const { getContract, getLog } = require('../utils/txHelpers')
+const { makeTime } = require('../utils/fakes')
 
 const MockKey = artifacts.require('./mocks/MockKEY.sol')
 const StakedAccessFactory = artifacts.require('./StakedAccessFactory.sol')
 const StakedAccess = artifacts.require('./StakedAccess.sol')
-
-const { makeTime } = require('../utils/fakes')
 
 contract('StakedAccess (core functionality)', accounts => {
   const [
@@ -64,6 +63,9 @@ contract('StakedAccess (core functionality)', accounts => {
       const balance = await token.balanceOf(punter)
       assert.equal(balance.toNumber(), 0)
     })
+
+    it('punter can not retreive their stake yet however', async () =>
+      assertThrows(escrow.retrieve({ from: punter })))
 
     context('hasFunds', () => {
       it('escrow has funds for the punter', async () => {

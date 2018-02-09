@@ -1,11 +1,11 @@
 const timeTravel = require('../utils/timeTravel')
+const assertThrows = require('../utils/assertThrows')
 const { getContract, getLog } = require('../utils/txHelpers')
+const { makeTime } = require('../utils/fakes')
 
 const MockKey = artifacts.require('./mocks/MockKEY.sol')
 const StakedAccessFactory = artifacts.require('./StakedAccessFactory.sol')
 const StakedAccess = artifacts.require('./StakedAccess.sol')
-
-const { makeTime } = require('../utils/fakes')
 
 contract('StakedAccess (after time travel)', accounts => {
   const [punter] = accounts.slice(1)
@@ -37,6 +37,9 @@ contract('StakedAccess (after time travel)', accounts => {
   })
 
   context('retreiving funds', () => {
+    it('punter can not stake funds', async () =>
+      assertThrows(escrow.stake({ from: punter })))
+
     it('punter can retrieve their funds', async () => {
       const tx = await escrow.retrieve({ from: punter })
       assert.notEqual(getLog(tx, 'KEYRetrieved'), null)

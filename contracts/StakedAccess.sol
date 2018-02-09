@@ -28,6 +28,16 @@ contract StakedAccess is Ownable {
     // mapping of addresses to the amounts they have on deposit.
     mapping(address => uint) private balances;
 
+    modifier contractHasExpired() {
+        require(now >= expiry);
+        _;
+    }
+
+    modifier contractHasNotExpired() {
+        require(now < expiry);
+        _;
+    }
+
     /**
      *  Don't allow Zero addresses.
      *  @param serviceProvider — the address which must not be zero.
@@ -116,6 +126,7 @@ contract StakedAccess is Ownable {
      */
     function stake()
         external
+        contractHasNotExpired()
         senderHasNotStaked()
         senderCanAfford(price)
         senderHasApprovedTransfer(price)
@@ -130,6 +141,7 @@ contract StakedAccess is Ownable {
      */
     function retrieve()
         external
+        contractHasExpired()
         senderHasStaked()
     {
         uint amount = balances[msg.sender];
@@ -163,6 +175,6 @@ contract StakedAccess is Ownable {
         view
         returns (bool)
     {
-        return now > expiry;
+        return now >= expiry;
     }
 }
