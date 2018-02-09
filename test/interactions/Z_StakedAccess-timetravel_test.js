@@ -4,7 +4,6 @@ const { getContract, getLog } = require('../utils/txHelpers')
 const { makeTime } = require('../utils/fakes')
 
 const MockKey = artifacts.require('./mocks/MockKEY.sol')
-const StakedAccessFactory = artifacts.require('./StakedAccessFactory.sol')
 const StakedAccess = artifacts.require('./StakedAccess.sol')
 
 contract('StakedAccess (after time travel)', accounts => {
@@ -18,11 +17,10 @@ contract('StakedAccess (after time travel)', accounts => {
   let token
 
   before(async () => {
-    const manager = await StakedAccessFactory.deployed()
-    token = await MockKey.deployed()
+    token = await MockKey.new()
     // create an escrow
-    const tx = await manager.createStakedAccess(expiry, price)
-    escrow = getContract(tx, 'StakedAccessCreated', 'escrow', StakedAccess)
+    escrow = await StakedAccess.new(expiry, price, token.address)
+
     // make sure punter has some KEY
     await token.freeMoney(punter, price)
     await token.approve(escrow.address, price, { from: punter })

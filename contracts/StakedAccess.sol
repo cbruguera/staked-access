@@ -5,8 +5,6 @@ pragma solidity ^0.4.19;
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'zeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 
-import './StakedAccessFactory.sol';
-
 
 /**
  *  An address with `KEY` staked in the `StakedAccess` has access to a given ICO.
@@ -44,11 +42,37 @@ contract StakedAccess is Ownable {
     }
 
     /**
-     *  Ensures the message sender has the appropriate balance of KEY
-     *  @param amount — the amount of KEY the message sender must have.
+     *  Don't allow Zero addresses.
+     *  @param anAddress — the address which must not be zero.
      */
-    modifier senderCanAfford(uint amount) {
-        require(token.balanceOf(msg.sender) >= amount);
+    modifier nonZeroAddress(address anAddress) {
+        require(anAddress != 0x0);
+        _;
+    }
+
+    /**
+     *  Ensures the expiry datestamp is after the current time.
+     *  @param _expiry — must be later than now.
+     */
+    modifier validExpiry(uint _expiry) {
+        require(_expiry > now);
+        _;
+    }
+
+    /**
+     *  Ensures the price amount is greater than zero.
+     *  @param _price — must be greater than 0.
+     */
+    modifier validPrice(uint _price) {
+        require(_price > 0);
+        _;
+    }
+
+    /**
+     *  Ensures the message sender has the appropriate balance of KEY
+     */
+    modifier senderCanAfford() {
+        require(token.balanceOf(msg.sender) >= price);
         _;
     }
 
@@ -69,11 +93,10 @@ contract StakedAccess is Ownable {
     }
 
     /**
-     *  Ensures the message sender has the approved the transfer of enough KEY by the escrow.
-     *  @param amount — the amount of KEY the message sender must have approved the escrow to transfer.
+     *  Ensures the message sender has the approved the transfer of enough KEY.
      */
-    modifier senderHasApprovedTransfer(uint amount) {
-        require(token.allowance(msg.sender, this) >= amount);
+    modifier senderHasApprovedTransfer() {
+        require(token.allowance(msg.sender, this) >= price);
         _;
     }
 
@@ -97,12 +120,15 @@ contract StakedAccess is Ownable {
      *  @param _token — The ERC20 token to use as currency. (Injected to ease testing)
      *  @param _price — The amount of KEY that need to be staked in order to access the associated service
      */
-    function StakedAccess(uint _expiry, uint _price, ERC20 _token) public {
+    function StakedAccess(uint _expiry, uint _price, address _token)
+        public
+        validExpiry(_expiry)
+        validPrice(_price)
+        nonZeroAddress(_token)
+    {
         expiry = _expiry;
-        token = _token;
         price = _price;
-        StakedAccessFactory factory = StakedAccessFactory(msg.sender);
-        owner = factory.owner();
+        token = ERC20(_token);
     }
 
     /**
@@ -112,8 +138,8 @@ contract StakedAccess is Ownable {
         external
         contractHasNotExpired()
         senderHasNotStaked()
-        senderCanAfford(price)
-        senderHasApprovedTransfer(price)
+        senderCanAfford()
+        senderHasApprovedTransfer()
     {
         token.transferFrom(msg.sender, this, price);
         balances[msg.sender] = price;
