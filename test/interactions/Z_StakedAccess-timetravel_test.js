@@ -5,11 +5,13 @@ const MockKey = artifacts.require('./MockKEY.sol')
 const StakedAccessFactory = artifacts.require('./StakedAccessFactory.sol')
 const StakedAccess = artifacts.require('./StakedAccess.sol')
 
+const { makeTime } = require('../utils/fakes')
+
 contract('StakedAccess (after time travel)', accounts => {
-  const [punter, serviceProvider] = accounts.slice(1)
+  const [punter] = accounts.slice(1)
 
   const price = 10
-  const expiry = 20 * 24 * 60 * 60 + Math.floor(new Date().getTime() / 1000)
+  const expiry = makeTime()
   const ONE_YEAR = 365 * 24 * 60 * 60
 
   let escrow
@@ -24,7 +26,7 @@ contract('StakedAccess (after time travel)', accounts => {
     // make sure punter has some KEY
     await token.freeMoney(punter, price)
     await token.approve(escrow.address, price, { from: punter })
-    await escrow.deposit({ from: punter })
+    await escrow.stake({ from: punter })
     await timeTravel(ONE_YEAR)
   })
 
@@ -40,7 +42,7 @@ contract('StakedAccess (after time travel)', accounts => {
       assert.notEqual(getLog(tx, 'KEYRetrieved'), null)
     })
 
-    it('now punter has no funds on deposit', async () => {
+    it('now punter has no staked funds', async () => {
       const hasFunds = await escrow.hasFunds(punter)
       assert.isFalse(hasFunds)
     })

@@ -67,7 +67,7 @@ contract StakedAccess is Ownable {
     /**
      *  Ensures the message sender has deposited KEY.
      */
-    modifier senderHasDeposited() {
+    modifier senderHasStaked() {
         require(balances[msg.sender] == price);
         _;
     }
@@ -75,7 +75,7 @@ contract StakedAccess is Ownable {
     /**
      *  Ensures the message sender has not deposited KEY.
      */
-    modifier senderHasNotDeposited() {
+    modifier senderHasNotStaked() {
         require(balances[msg.sender] == 0);
         _;
     }
@@ -94,7 +94,7 @@ contract StakedAccess is Ownable {
      *  @param by — The address that deposited the KEY.
      *  @param amount — The amount of KEY deposited.
      */
-    event KEYDeposited(address by, uint amount);
+    event KEYStaked(address by, uint amount);
 
     /**
      *  Emitted when a an amount of KEY has been retrieved by its owner.
@@ -118,17 +118,17 @@ contract StakedAccess is Ownable {
     }
 
     /**
-     *  Deposit `price` amount of KEY.
+     *  Stake `price` amount of KEY.
      */
-    function deposit()
+    function stake()
         external
-        senderHasNotDeposited()
+        senderHasNotStaked()
         senderCanAfford(price)
         senderHasApprovedTransfer(price)
     {
         token.transferFrom(msg.sender, this, price);
         balances[msg.sender] = price;
-        KEYDeposited(msg.sender, price);
+        KEYStaked(msg.sender, price);
     }
 
     /**
@@ -136,7 +136,7 @@ contract StakedAccess is Ownable {
      */
     function retrieve()
         external
-        senderHasDeposited()
+        senderHasStaked()
     {
         uint amount = balances[msg.sender];
         token.transfer(msg.sender, amount);
