@@ -2,8 +2,8 @@
 
 // ref http://truffleframework.com/docs/getting_started/migrations
 
-const MockKEY = artifacts.require('./MockKEY.sol')
 const StakedAccessFactory = artifacts.require('./StakedAccessFactory.sol')
+const MockKEY = artifacts.require('./mocks/MockKEY.sol')
 
 const isDeveloperNetwork = network => network.startsWith('develop')
 const isTestNetwork = network => network.startsWith('test')

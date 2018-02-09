@@ -3,7 +3,7 @@
 const assertThrows = require('../utils/assertThrows')
 const { getContract, getLog } = require('../utils/txHelpers')
 
-const MockKey = artifacts.require('./MockKEY.sol')
+const MockKey = artifacts.require('./mocks/MockKEY.sol')
 const StakedAccessFactory = artifacts.require('./StakedAccessFactory.sol')
 const StakedAccess = artifacts.require('./StakedAccess.sol')
 
