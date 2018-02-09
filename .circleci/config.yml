@@ -43,15 +43,9 @@ jobs:
           command: npm run lint:js
 
       - run:
-          name: Unit tests without code coverage
-          command: npm test
+          name: Unit tests with code coverage
+          command: npm run test:cov
 
-      # TODO: integrate with CodeCov
-
-      # - run:
-      #     name: Unit tests with code coverage
-      #     command: npm run test:cov
-      #
-      # - run:
-      #     name: Send reports to codecov.io
-      #     command: codecov
+      - run:
+          name: Send reports to codecov.io
+          command: codecov
