@@ -9,53 +9,37 @@ import './StakedAccessFactory.sol';
 
 
 /**
- *  An address with `KEY` deposited in the `StakedAccess` has access to a given ICO.
+ *  An address with `KEY` staked in the `StakedAccess` has access to a given ICO.
  *
  *  An address can only `retrieve` its `KEY` from the escrow after the allotted expiry time.
  */
 contract StakedAccess is Ownable {
 
-    // the number of days during which a deposit can only be spent on a whitelisted address.
+    // the date after which funds can be retrieved back by their original senders.
     uint public expiry;
 
     // the amount of KEY that needs to be staked in order to access the associated service
-    // users shouldn't arbitrarily deposit less or more than it
     uint public price;
 
     // the KEY token. It's an injected variable to allow for testing with a MockKEY.
     ERC20 private token;
 
-    // mapping of addresses to the amounts they have on deposit.
+    // mapping of addresses to the amounts they have staked.
     mapping(address => uint) private balances;
 
+    /**
+     *  Require that the contract has reached its expiry date
+     */
     modifier contractHasExpired() {
         require(now >= expiry);
         _;
     }
 
+    /**
+     *  Require that the contract has not yet reached its expiry date
+     */
     modifier contractHasNotExpired() {
         require(now < expiry);
-        _;
-    }
-
-    /**
-     *  Don't allow Zero addresses.
-     *  @param serviceProvider — the address which must not be zero.
-     */
-    modifier nonZeroAddress(address serviceProvider) {
-        require(serviceProvider != 0x0);
-        _;
-    }
-
-    /**
-     *  Require numbers that are not zero.
-     *  Note: Negative value sent from a wallet become massive positive numbers so it
-     *        is not actually possible to check against negative inputs.
-     *        This modifier must be used in combination with other checks against the user's balance.
-     *  @param number — the number which must not be zero.
-     */
-    modifier nonZeroNumber(uint number) {
-        require(number > 0);
         _;
     }
 
@@ -69,7 +53,7 @@ contract StakedAccess is Ownable {
     }
 
     /**
-     *  Ensures the message sender has deposited KEY.
+     *  Ensures the message sender has staked KEY.
      */
     modifier senderHasStaked() {
         require(balances[msg.sender] == price);
@@ -77,7 +61,7 @@ contract StakedAccess is Ownable {
     }
 
     /**
-     *  Ensures the message sender has not deposited KEY.
+     *  Ensures the message sender has not yet staked KEY.
      */
     modifier senderHasNotStaked() {
         require(balances[msg.sender] == 0);
@@ -94,21 +78,21 @@ contract StakedAccess is Ownable {
     }
 
     /**
-     *  Emitted when a an amount of KEY has been deposited.
-     *  @param by — The address that deposited the KEY.
-     *  @param amount — The amount of KEY deposited.
+     *  Emitted when a an amount of KEY has been staked.
+     *  @param by — The address that staked the KEY.
+     *  @param amount — The amount of KEY staked.
      */
     event KEYStaked(address by, uint amount);
 
     /**
      *  Emitted when a an amount of KEY has been retrieved by its owner.
-     *  @param to — The address receiving the KEY.
-     *  @param amount — The amount of KEY being sent.
+     *  @param to — The address retrieving the KEY.
+     *  @param amount — The amount of KEY being retrieved.
      */
     event KEYRetrieved(address to, uint amount);
 
     /**
-     *  StakedAccess constructor. Can only be invoked by a `StakedAccessFactory`.
+     *  StakedAccess constructor.
      *  @param _expiry — The timestamp of the contract expiry date.
      *  @param _token — The ERC20 token to use as currency. (Injected to ease testing)
      *  @param _price — The amount of KEY that need to be staked in order to access the associated service
@@ -137,7 +121,7 @@ contract StakedAccess is Ownable {
     }
 
     /**
-     *  Once a timelock has expired the KEY owner may retrieve their KEY from the Escrow.
+     *  Once a timelock has expired the KEY owner may retrieve their KEY.
      */
     function retrieve()
         external
@@ -151,19 +135,19 @@ contract StakedAccess is Ownable {
     }
 
     /**
-     *  Test to see if an arbitrary address has KEY on deposit.
-     *  @param depositor — The address claiming to have KEY deposited.
-     *  @return true if the depositor has KEY deposited.
+     *  Test to see if an arbitrary address has staked KEY.
+     *  @param staker — The address claiming to have staked KEY.
+     *  @return true if the staker has staked KEY.
      */
-    function hasFunds(address depositor)
+    function hasFunds(address staker)
         external
         view
         returns (bool)
     {
-        if (depositor == 0x0) {
+        if (staker == 0x0) {
             return false;
         }
-        return balances[depositor] == price;
+        return balances[staker] == price;
     }
 
     /**
