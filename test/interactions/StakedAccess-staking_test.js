@@ -54,6 +54,9 @@ contract('StakedAccess (core functionality)', accounts => {
       const tx = await escrow.stake({ from: punter })
       assert.notEqual(getLog(tx, 'KEYStaked'), null)
     })
+
+    it('punter who has staked can not stake again', async () =>
+      assertThrows(escrow.stake({ from: punter })))
   })
 
   context('after successful stake', () => {

@@ -7,7 +7,7 @@ const MockKey = artifacts.require('./mocks/MockKEY.sol')
 const StakedAccess = artifacts.require('./StakedAccess.sol')
 
 contract('StakedAccess (after time travel)', accounts => {
-  const [punter] = accounts.slice(1)
+  const [punter, anotherPunter] = accounts.slice(1)
 
   const price = 10
   const expiry = makeTime()
@@ -47,5 +47,19 @@ contract('StakedAccess (after time travel)', accounts => {
       const hasFunds = await escrow.hasFunds(punter)
       assert.isFalse(hasFunds)
     })
+  })
+
+  context('punter who has not yet staked', () => {
+    before(async () => {
+      // make sure punter has some KEY
+      await token.freeMoney(anotherPunter, price)
+      await token.approve(escrow.address, price, { from: anotherPunter })
+    })
+
+    it('can not stake once the contract has expired', async () =>
+      assertThrows(escrow.stake({ from: anotherPunter })))
+
+    it('can not retrieve if they have not staked', async () =>
+      assertThrows(escrow.retrieve({ from: anotherPunter })))
   })
 })
