@@ -25,12 +25,6 @@ contract StakedAccess is Ownable {
     // the KEY token. It's an injected variable to allow for testing with a MockKEY.
     ERC20 private token;
 
-    // mapping of whitelisted addresses.
-    // TODO: Service provider whitelisting shouldn't be done on StakedAccess
-    //       but on a wider "manager" contract (this on a future release).
-    //       StakedAccess contract is associated to a single service provider.
-    mapping(address => bool) private whitelisted;
-
     // mapping of addresses to the amounts they have on deposit.
     mapping(address => uint) private balances;
 
