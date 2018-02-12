@@ -7,7 +7,17 @@ Contracts that provide access to a marketplace based on the staking of KEY by pa
 
 ## Overview
 
-_insert overview_
+Many ICOs require that their participants be KYC (Know Your Customer) verified before being allowed to participate in their crowdsale.
+
+The `StakedAccess` contracts by the SelfKeyFoundation provide the following functionality.
+
+1. Whitelisted addresses, which have been KYC verified, are able to `stake` `KEY` tokens, reserving an amount of tokens to indicate their willingness to participate in an ICO.
+2. Staked `KEY` can only be retrieved by its owner once the `StakedAccess` contract has expired.
+3. The managers of an ICO can query `hasStaked` for any address to see if that address has staked `KEY`.
+4. Any address which has staked `KEY` has demonstrated both
+
+    * that their KYC details have been verified, and
+    * that they are keen to participate in the ICO.
 
 ## Development
 
