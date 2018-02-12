@@ -140,8 +140,8 @@ contract StakedAccess is Ownable {
         senderCanAfford()
         senderHasApprovedTransfer()
     {
-        token.transferFrom(msg.sender, this, price);
         balances[msg.sender] = price;
+        token.transferFrom(msg.sender, this, price);
         KEYStaked(msg.sender, price);
     }
 
@@ -154,8 +154,8 @@ contract StakedAccess is Ownable {
         senderHasStaked()
     {
         uint amount = balances[msg.sender];
-        token.transfer(msg.sender, amount);
         balances[msg.sender] = 0;
+        token.transfer(msg.sender, amount);
         KEYRetrieved(msg.sender, amount);
     }
 
