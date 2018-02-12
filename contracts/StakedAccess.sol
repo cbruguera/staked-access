@@ -8,15 +8,15 @@ import './Whitelistable.sol';
 
 /**
  *  An address with `KEY` staked in the `StakedAccess` has access to a given ICO.
- *
  *  An address can only `retrieve` its `KEY` from the escrow after the allotted expiry time.
+ *  Only whitelisted addresses can stake `KEY`.
  */
 contract StakedAccess is Whitelistable {
 
     // the date after which funds can be retrieved back by their original senders.
     uint public expiry;
 
-    // the amount of KEY that needs to be staked in order to access the associated service
+    // the amount of KEY that needs to be staked in order to access the associated service.
     uint public price;
 
     // the KEY token. It's an injected variable to allow for testing with a MockKEY.
@@ -26,7 +26,7 @@ contract StakedAccess is Whitelistable {
     mapping(address => uint) private balances;
 
     /**
-     *  Require that the contract has reached its expiry date
+     *  Require that the contract has reached its expiry date.
      */
     modifier contractHasExpired() {
         require(now >= expiry);
@@ -34,7 +34,7 @@ contract StakedAccess is Whitelistable {
     }
 
     /**
-     *  Require that the contract has not yet reached its expiry date
+     *  Require that the contract has not yet reached its expiry date.
      */
     modifier contractHasNotExpired() {
         require(now < expiry);
@@ -60,7 +60,7 @@ contract StakedAccess is Whitelistable {
     }
 
     /**
-     *  Ensures the message sender has the appropriate balance of KEY
+     *  Ensures the message sender has the appropriate balance of `KEY`.
      */
     modifier senderCanAfford() {
         require(token.balanceOf(msg.sender) >= price);
@@ -68,7 +68,7 @@ contract StakedAccess is Whitelistable {
     }
 
     /**
-     *  Ensures the message sender has staked KEY.
+     *  Ensures the message sender has staked `KEY`.
      */
     modifier senderHasStaked() {
         require(balances[msg.sender] != 0);
@@ -76,7 +76,7 @@ contract StakedAccess is Whitelistable {
     }
 
     /**
-     *  Ensures the message sender has not yet staked KEY.
+     *  Ensures the message sender has not yet staked `KEY`.
      */
     modifier senderHasNotStaked() {
         require(balances[msg.sender] == 0);
@@ -84,7 +84,7 @@ contract StakedAccess is Whitelistable {
     }
 
     /**
-     *  Ensures the message sender has the approved the transfer of enough KEY.
+     *  Ensures the message sender has the approved the transfer of enough `KEY`.
      */
     modifier senderHasApprovedTransfer() {
         require(token.allowance(msg.sender, this) >= price);
@@ -92,24 +92,24 @@ contract StakedAccess is Whitelistable {
     }
 
     /**
-     *  Emitted when a an amount of KEY has been staked.
-     *  @param by — The address that staked the KEY.
-     *  @param amount — The amount of KEY staked.
+     *  Emitted when an amount of `KEY` has been staked.
+     *  @param by — The address that staked the `KEY`.
+     *  @param amount — The amount of `KEY` staked.
      */
     event KEYStaked(address by, uint amount);
 
     /**
-     *  Emitted when a an amount of KEY has been retrieved by its owner.
-     *  @param to — The address retrieving the KEY.
-     *  @param amount — The amount of KEY being retrieved.
+     *  Emitted when an amount of `KEY` has been retrieved by its owner.
+     *  @param to — The address retrieving the `KEY`.
+     *  @param amount — The amount of `KEY` retrieved.
      */
     event KEYRetrieved(address to, uint amount);
 
     /**
      *  StakedAccess constructor.
      *  @param _expiry — The timestamp of the contract expiry date.
-     *  @param _token — The ERC20 token to use as currency. (Injected to ease testing)
-     *  @param _price — The amount of KEY that need to be staked in order to access the associated service
+     *  @param _price — The amount of `KEY` that needs to be staked in order to access the associated service.
+     *  @param _token — The `ERC20` token to use as currency. (Injected to ease testing).
      */
     function StakedAccess(uint _expiry, uint _price, address _token)
         public
@@ -123,7 +123,7 @@ contract StakedAccess is Whitelistable {
     }
 
     /**
-     *  Stake `price` amount of KEY.
+     *  Stake `price` amount of `KEY`.
      */
     function stake()
         external
@@ -139,7 +139,7 @@ contract StakedAccess is Whitelistable {
     }
 
     /**
-     *  Once a timelock has expired the KEY owner may retrieve their KEY.
+     *  Once the contract has expired, the `KEY` owner may retrieve their `KEY`.
      */
     function retrieve()
         external
@@ -153,9 +153,9 @@ contract StakedAccess is Whitelistable {
     }
 
     /**
-     *  Test to see if an arbitrary address has staked KEY.
-     *  @param staker — The address claiming to have staked KEY.
-     *  @return true if the staker has staked KEY.
+     *  Test to see if an arbitrary address has staked `KEY`.
+     *  @param staker — The address claiming to have staked `KEY`.
+     *  @return true if the staker has staked `KEY`.
      */
     function hasStaked(address staker)
         external
