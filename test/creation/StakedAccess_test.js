@@ -1,13 +1,12 @@
 // ref https://medium.com/level-k/testing-smart-contracts-with-truffle-7849b3d9961
 
 const assertThrows = require('../utils/assertThrows')
-const { getLog } = require('../utils/txHelpers')
 const { makeTime } = require('../utils/fakes')
 
 const MockKey = artifacts.require('./mocks/MockKEY.sol')
 const StakedAccess = artifacts.require('./StakedAccess.sol')
 
-contract('StakedAccess (creation)', () => {
+contract('StakedAccess (creation)', ([owner]) => {
   const price = 10
   const expiry = makeTime()
 
@@ -27,6 +26,10 @@ contract('StakedAccess (creation)', () => {
     it('created the contract', () => {
       assert.notEqual(escrow, null)
       assert.notEqual(escrow, undefined)
+    })
+
+    it('has the correct owner', async () => {
+      assert.equal(await escrow.owner(), owner)
     })
   })
 

@@ -2,8 +2,8 @@
 
 pragma solidity ^0.4.19;
 
-import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'zeppelin-solidity/contracts/token/ERC20/ERC20.sol';
+import './Whitelistable.sol';
 
 
 /**
@@ -11,7 +11,7 @@ import 'zeppelin-solidity/contracts/token/ERC20/ERC20.sol';
  *
  *  An address can only `retrieve` its `KEY` from the escrow after the allotted expiry time.
  */
-contract StakedAccess is Ownable {
+contract StakedAccess is Whitelistable {
 
     // the date after which funds can be retrieved back by their original senders.
     uint public expiry;
@@ -38,15 +38,6 @@ contract StakedAccess is Ownable {
      */
     modifier contractHasNotExpired() {
         require(now < expiry);
-        _;
-    }
-
-    /**
-     *  Don't allow Zero addresses.
-     *  @param anAddress — the address which must not be zero.
-     */
-    modifier nonZeroAddress(address anAddress) {
-        require(anAddress != 0x0);
         _;
     }
 
@@ -80,7 +71,7 @@ contract StakedAccess is Ownable {
      *  Ensures the message sender has staked KEY.
      */
     modifier senderHasStaked() {
-        require(balances[msg.sender] == price);
+        require(balances[msg.sender] != 0);
         _;
     }
 
@@ -137,6 +128,7 @@ contract StakedAccess is Ownable {
     function stake()
         external
         contractHasNotExpired()
+        onlyWhitelisted()
         senderHasNotStaked()
         senderCanAfford()
         senderHasApprovedTransfer()
@@ -165,7 +157,7 @@ contract StakedAccess is Ownable {
      *  @param staker — The address claiming to have staked KEY.
      *  @return true if the staker has staked KEY.
      */
-    function hasFunds(address staker)
+    function hasStaked(address staker)
         external
         view
         returns (bool)
@@ -173,7 +165,7 @@ contract StakedAccess is Ownable {
         if (staker == 0x0) {
             return false;
         }
-        return balances[staker] == price;
+        return balances[staker] != 0;
     }
 
     /**
