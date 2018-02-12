@@ -3,15 +3,14 @@
 pragma solidity ^0.4.19;
 
 import 'zeppelin-solidity/contracts/token/ERC20/ERC20.sol';
-import './Whitelistable.sol';
+import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 
 
 /**
  *  An address with `KEY` staked in the `StakedAccess` has access to a given ICO.
  *  An address can only `retrieve` its `KEY` from the escrow after the allotted expiry time.
- *  Only whitelisted addresses can stake `KEY`.
  */
-contract StakedAccess is Whitelistable {
+contract StakedAccess is Ownable {
 
     // the date after which funds can be retrieved back by their original senders.
     uint public expiry;
@@ -38,6 +37,15 @@ contract StakedAccess is Whitelistable {
      */
     modifier contractHasNotExpired() {
         require(now < expiry);
+        _;
+    }
+
+    /**
+     *  Don't allow Zero addresses.
+     *  @param addr — the address which must not be zero.
+     */
+    modifier nonZeroAddress(address addr) {
+        require(addr != address(0));
         _;
     }
 
@@ -128,7 +136,6 @@ contract StakedAccess is Whitelistable {
     function stake()
         external
         contractHasNotExpired()
-        onlyWhitelisted()
         senderHasNotStaked()
         senderCanAfford()
         senderHasApprovedTransfer()
