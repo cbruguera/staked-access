@@ -58,9 +58,6 @@ contract('Whitelistable (whitelister)', ([owner, whitelister]) => {
 
       it('will not add a whitelister', () =>
         assertThrows(whitelistable.addWhitelister(invalid)))
-
-      it('will not remove a whitelister', () =>
-        assertThrows(whitelistable.removeWhitelister(invalid)))
     })
   })
 })

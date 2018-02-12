@@ -89,7 +89,6 @@ contract Whitelistable is Ownable {
      */
     function removeWhitelister(address addr)
         external
-        nonZeroAddress(addr)
         onlyOwner()
     {
         if (whitelisters[addr]) {
@@ -121,7 +120,6 @@ contract Whitelistable is Ownable {
      */
     function removeFromWhitelist(address addr)
         external
-        nonZeroAddress(addr)
         onlyWhitelister()
     {
         if (whitelist[addr]) {
@@ -140,9 +138,6 @@ contract Whitelistable is Ownable {
         view
         returns (bool)
     {
-        if (addr == address(0) || !whitelist[addr]) {
-            return false;
-        }
-        return true;
+        return whitelist[addr];
     }
 }

@@ -162,9 +162,6 @@ contract StakedAccess is Whitelistable {
         view
         returns (bool)
     {
-        if (staker == 0x0) {
-            return false;
-        }
         return balances[staker] != 0;
     }
 
