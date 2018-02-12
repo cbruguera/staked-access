@@ -17,7 +17,7 @@ contract MockKEY is StandardToken {
      *  @param amount — the amount of tokens to give.
      */
     function freeMoney(address punter, uint amount) external {
-        require(punter != 0x0);
+        require(punter != address(0));
         balances[punter] = amount;
     }
 }
