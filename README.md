@@ -1,7 +1,5 @@
 # staked-access
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/SelfKeyFoundation/staked-access.svg)](https://greenkeeper.io/)
-
 Contracts that provide access to a marketplace based on the staking of KEY by participants
 
 [![Greenkeeper badge](https://badges.greenkeeper.io/SelfKeyFoundation/staked-access.svg)](https://greenkeeper.io/)
