@@ -2,8 +2,9 @@
 
 pragma solidity ^0.4.19;
 
-import 'zeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+import 'zeppelin-solidity/contracts/token/ERC20/ERC20.sol';
+import 'zeppelin-solidity/contracts/token/ERC20/SafeERC20.sol';
 
 
 /**
@@ -11,6 +12,7 @@ import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
  *  An address can only `retrieve` its `KEY` from the escrow after the allotted expiry time.
  */
 contract StakedAccess is Ownable {
+    using SafeERC20 for ERC20;
 
     // the date after which funds can be retrieved back by their original senders.
     uint public expiry;
@@ -141,7 +143,7 @@ contract StakedAccess is Ownable {
         senderHasApprovedTransfer()
     {
         balances[msg.sender] = price;
-        token.transferFrom(msg.sender, this, price);
+        token.safeTransferFrom(msg.sender, this, price);
         KEYStaked(msg.sender, price);
     }
 
@@ -155,7 +157,7 @@ contract StakedAccess is Ownable {
     {
         uint amount = balances[msg.sender];
         balances[msg.sender] = 0;
-        token.transfer(msg.sender, amount);
+        token.safeTransfer(msg.sender, amount);
         KEYRetrieved(msg.sender, amount);
     }
 
