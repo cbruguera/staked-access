@@ -1,5 +1,7 @@
 # staked-access
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/SelfKeyFoundation/staked-access.svg)](https://greenkeeper.io/)
+
 Contracts that provide access to a marketplace based on the staking of KEY by participants
 
 * `develop` — [![CircleCI](https://circleci.com/gh/SelfKeyFoundation/staked-access/tree/develop.svg?style=svg)](https://circleci.com/gh/SelfKeyFoundation/staked-access/tree/develop) [![codecov](https://codecov.io/gh/SelfKeyFoundation/staked-access/branch/develop/graph/badge.svg)](https://codecov.io/gh/SelfKeyFoundation/staked-access)
