@@ -1,18 +1,15 @@
 const timeTravel = require('../utils/timeTravel')
 const assertThrows = require('../utils/assertThrows')
 const { getLog } = require('../utils/txHelpers')
-const { makeTime } = require('../utils/fakes')
 
 const MockKey = artifacts.require('./mocks/MockKEY.sol')
 const StakedAccess = artifacts.require('./StakedAccess.sol')
 
 contract('StakedAccess (after time travel)', accounts => {
-  const [punter, anotherPunter] = accounts.slice(1)
+  const [sender, sender2] = accounts.slice(1)
 
   const price = 10
-  const expiry = makeTime()
-  const ONE_YEAR = 365 * 24 * 60 * 60
-  const fromPunter = { from: punter }
+  const period = 2592000 // 30 days
 
   let escrow
   let token
@@ -20,48 +17,33 @@ contract('StakedAccess (after time travel)', accounts => {
   before(async () => {
     token = await MockKey.new()
     // create an escrow
-    escrow = await StakedAccess.new(expiry, price, token.address)
+    escrow = await StakedAccess.new(price, token.address, period)
 
-    // make sure punter has some KEY
-    await token.freeMoney(punter, price)
-    await token.approve(escrow.address, price, fromPunter)
-    await escrow.stake({ from: punter })
-    await timeTravel(ONE_YEAR)
+    // make sure sender has some KEY
+    await token.freeMoney(sender, price * 2)
+    await token.approve(escrow.address, price, { from: sender })
+    await escrow.stake({ from: sender })
+    assert.isTrue(await escrow.hasStake(sender))
+    await timeTravel(period)
   })
 
-  context('hasExpired', () => {
-    it('the escrow has expired', async () => {
-      assert.isTrue(await escrow.hasExpired())
-    })
-  })
+  context('retrieving funds', () => {
+    it('sender can not stake funds before retrieval', async () =>
+      assertThrows(escrow.stake({ from: sender })))
 
-  context('retreiving funds', () => {
-    it('punter can not stake funds', async () =>
-      assertThrows(escrow.stake(fromPunter)))
-
-    it('punter can retrieve their funds', async () => {
-      const tx = await escrow.retrieve(fromPunter)
+    it('sender can retrieve their funds', async () => {
+      const balance1 = await token.balanceOf(sender)
+      const tx = await escrow.retrieve({ from: sender })
+      const balance2 = await token.balanceOf(sender)
       assert.notEqual(getLog(tx, 'KEYRetrieved'), null)
+      assert.equal(balance2.toNumber(), balance1.toNumber() + price)
+      assert.isFalse(await escrow.hasStake(sender))
     })
 
-    it('now punter has no staked funds', async () => {
-      const hasStaked = await escrow.hasStaked(punter)
-      assert.isFalse(hasStaked)
+    it('sender can stake again now', async () => {
+      await token.approve(escrow.address, price, { from: sender })
+      await escrow.stake({ from: sender })
+      assert.isTrue(await escrow.hasStake(sender))
     })
-  })
-
-  context('punter who has not yet staked', () => {
-    const fromAnotherPunter = { from: anotherPunter }
-    before(async () => {
-      // make sure punter has some KEY
-      await token.freeMoney(anotherPunter, price)
-      await token.approve(escrow.address, price, fromAnotherPunter)
-    })
-
-    it('can not stake once the contract has expired', async () =>
-      assertThrows(escrow.stake(fromAnotherPunter)))
-
-    it('can not retrieve if they have not staked', async () =>
-      assertThrows(escrow.retrieve(fromAnotherPunter)))
   })
 })

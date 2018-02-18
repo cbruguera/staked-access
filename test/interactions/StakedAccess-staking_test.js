@@ -1,20 +1,18 @@
 const assertThrows = require('../utils/assertThrows')
 const { getLog } = require('../utils/txHelpers')
-const { makeTime } = require('../utils/fakes')
 
 const MockKey = artifacts.require('./mocks/MockKEY.sol')
 const StakedAccess = artifacts.require('./StakedAccess.sol')
 
-contract('StakedAccess (core)', accounts => {
+contract('StakedAccess', accounts => {
   const [
-    punter, // a regular punter
-    lazyPunter, // a punter who has failed to approve a transfer of KEY
-    deadbeatPunter // a punter with no KEY
+    sender, // a regular sender
+    sender2, // a sender who has failed to approve a transfer of KEY
+    sender3 // a sender with no KEY
   ] = accounts.slice(1)
 
   const price = 10
-  const expiry = makeTime()
-  const fromPunter = { from: punter }
+  const period = 2592000 // 30 days
 
   let escrow
   let token
@@ -22,63 +20,51 @@ contract('StakedAccess (core)', accounts => {
   before(async () => {
     token = await MockKey.new()
     // create an escrow
-    escrow = await StakedAccess.new(expiry, price, token.address)
+    escrow = await StakedAccess.new(price, token.address, period)
 
-    // make sure punter and lazyPunter have some KEY
-    await token.freeMoney(punter, price)
-    await token.freeMoney(lazyPunter, price)
-    await token.approve(escrow.address, price, fromPunter)
-  })
-
-  context('hasExpired', () => {
-    it('the escrow has not expired', async () => {
-      assert.isFalse(await escrow.hasExpired())
-    })
+    // make sure sender and sender2 have some KEY
+    await token.freeMoney(sender, price)
+    await token.freeMoney(sender2, price)
+    await token.approve(escrow.address, price, { from: sender })
   })
 
   context('stake', () => {
-    // deadbeat punter has has no money
-    context('deadbeat punter', () => {
-      it("can't stake KEY", () =>
-        assertThrows(escrow.stake({ from: deadbeatPunter })))
+    // deadbeat sender has has no money
+    context('sender without funds', () => {
+      it("can't stake KEY", () => assertThrows(escrow.stake({ from: sender3 })))
     })
 
-    // lazy punter has has money but has not approved transfer
-    context('lazy punter', () => {
-      it("can't stake KEY", () =>
-        assertThrows(escrow.stake({ from: lazyPunter })))
+    // lazy sender has has money but has not approved transfer
+    context('sender that has not approved', () => {
+      it("can't stake KEY", () => assertThrows(escrow.stake({ from: sender2 })))
     })
 
-    it('punter with approved amount of KEY can stake', async () => {
-      const tx = await escrow.stake(fromPunter)
-      assert.notEqual(getLog(tx, 'KEYStaked'), null)
+    it('sender with approved amount of KEY can stake', async () => {
+      const balance1 = await token.balanceOf(sender)
+      const tx = await escrow.stake({ from: sender })
+      const balance2 = await token.balanceOf(sender)
+      const staked = await escrow.hasStake(sender)
+      assert.isTrue(staked)
+      assert.notEqual(getLog(tx, 'KEYStaked'), null) // generated event
+      assert.equal(balance2.toNumber(), balance1.toNumber() - price)
     })
 
-    it('punter who has staked can not stake again', async () =>
-      assertThrows(escrow.stake(fromPunter)))
+    it('sender who has staked can not stake again', async () =>
+      assertThrows(escrow.stake({ from: sender })))
   })
 
   context('after successful stake', () => {
-    it("punter's balance is 0", async () => {
-      const balance = await token.balanceOf(punter)
-      assert.equal(balance.toNumber(), 0)
-    })
+    it('sender can not retreive their stake yet', async () =>
+      assertThrows(escrow.retrieve({ from: sender })))
 
-    it('punter can not retreive their stake yet however', async () =>
-      assertThrows(escrow.retrieve(fromPunter)))
-
-    context('hasStaked', () => {
-      it('escrow has funds for the punter', async () => {
-        const hasStaked = await escrow.hasStaked(punter)
-        assert.isTrue(hasStaked)
+    context('hasStake', () => {
+      it('escrow has funds for the sender', async () => {
+        const hasStake = await escrow.hasStake(sender)
+        assert.isTrue(hasStake)
       })
 
-      it('zero address returns false', async () => {
-        assert.isFalse(await escrow.hasStaked(0x0))
-      })
-
-      it('punter with no staked funds returns false', async () => {
-        assert.isFalse(await escrow.hasStaked(deadbeatPunter))
+      it('sender with no staked funds returns false', async () => {
+        assert.isFalse(await escrow.hasStake(sender3))
       })
     })
   })
