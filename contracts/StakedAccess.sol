@@ -2,8 +2,8 @@
 
 pragma solidity ^0.4.19;
 
-import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'zeppelin-solidity/contracts/token/ERC20/ERC20.sol';
+import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'zeppelin-solidity/contracts/token/ERC20/SafeERC20.sol';
 
 
@@ -14,58 +14,26 @@ import 'zeppelin-solidity/contracts/token/ERC20/SafeERC20.sol';
 contract StakedAccess is Ownable {
     using SafeERC20 for ERC20;
 
-    // the date after which funds can be retrieved back by their original senders.
-    uint public expiry;
+    // the dates after which funds can be retrieved back by their original senders
+    mapping(address => uint256) public releaseDates;
 
-    // the amount of KEY that needs to be staked in order to access the associated service.
-    uint public price;
+    // the amount of KEY that needs to be staked in order to access the associated service
+    uint256 public price;
 
-    // the KEY token. It's an injected variable to allow for testing with a MockKEY.
+    // the MINIMUM time a staking should be done before allowing release by sender
+    uint256 public stakePeriod;
+
+    // the ERC20 token this contract will receive as stake
     ERC20 private token;
 
-    // mapping of addresses to the amounts they have staked.
+    // mapping of addresses to the amounts they have staked
     mapping(address => uint) private balances;
 
     /**
-     *  Require that the contract has reached its expiry date.
+     *  Require that the release date has been reached for the given sender.
      */
-    modifier contractHasExpired() {
-        require(now >= expiry);
-        _;
-    }
-
-    /**
-     *  Require that the contract has not yet reached its expiry date.
-     */
-    modifier contractHasNotExpired() {
-        require(now < expiry);
-        _;
-    }
-
-    /**
-     *  Don't allow Zero addresses.
-     *  @param addr — the address which must not be zero.
-     */
-    modifier nonZeroAddress(address addr) {
-        require(addr != address(0));
-        _;
-    }
-
-    /**
-     *  Ensures the expiry datestamp is after the current time.
-     *  @param _expiry — must be later than now.
-     */
-    modifier validExpiry(uint _expiry) {
-        require(_expiry > now);
-        _;
-    }
-
-    /**
-     *  Ensures the price amount is greater than zero.
-     *  @param _price — must be greater than 0.
-     */
-    modifier validPrice(uint _price) {
-        require(_price > 0);
+    modifier senderCanRetrieve() {
+        require(now >= releaseDates[msg.sender]);
         _;
     }
 
@@ -80,15 +48,15 @@ contract StakedAccess is Ownable {
     /**
      *  Ensures the message sender has staked `KEY`.
      */
-    modifier senderHasStaked() {
-        require(balances[msg.sender] != 0);
+    modifier senderHasStake() {
+        require(balances[msg.sender] > 0);
         _;
     }
 
     /**
      *  Ensures the message sender has not yet staked `KEY`.
      */
-    modifier senderHasNotStaked() {
+    modifier senderHasNoStake() {
         require(balances[msg.sender] == 0);
         _;
     }
@@ -117,19 +85,20 @@ contract StakedAccess is Ownable {
 
     /**
      *  StakedAccess constructor.
-     *  @param _expiry — The timestamp of the contract expiry date.
      *  @param _price — The amount of `KEY` that needs to be staked in order to access the associated service.
      *  @param _token — The `ERC20` token to use as currency. (Injected to ease testing).
+     *  @param _period — The minimum time period each sender has to stake their tokens
      */
-    function StakedAccess(uint _expiry, uint _price, address _token)
+    function StakedAccess(uint256 _price, address _token, uint256 _period)
         public
-        validExpiry(_expiry)
-        validPrice(_price)
-        nonZeroAddress(_token)
     {
-        expiry = _expiry;
+        require(_price > 0);
+        require(_token != address(0));
+        require(_period > 0);
+
         price = _price;
         token = ERC20(_token);
+        stakePeriod = _period;
     }
 
     /**
@@ -137,13 +106,14 @@ contract StakedAccess is Ownable {
      */
     function stake()
         external
-        contractHasNotExpired()
-        senderHasNotStaked()
+        senderHasNoStake()
         senderCanAfford()
         senderHasApprovedTransfer()
     {
         balances[msg.sender] = price;
+        releaseDates[msg.sender] = now + stakePeriod;
         token.safeTransferFrom(msg.sender, this, price);
+
         KEYStaked(msg.sender, price);
     }
 
@@ -152,12 +122,13 @@ contract StakedAccess is Ownable {
      */
     function retrieve()
         external
-        contractHasExpired()
-        senderHasStaked()
+        senderHasStake()
+        senderCanRetrieve()
     {
-        uint amount = balances[msg.sender];
+        uint256 amount = balances[msg.sender];
         balances[msg.sender] = 0;
         token.safeTransfer(msg.sender, amount);
+
         KEYRetrieved(msg.sender, amount);
     }
 
@@ -166,23 +137,11 @@ contract StakedAccess is Ownable {
      *  @param staker — The address claiming to have staked `KEY`.
      *  @return true if the staker has staked `KEY`.
      */
-    function hasStaked(address staker)
+    function hasStake(address staker)
         external
         view
         returns (bool)
     {
-        return balances[staker] != 0;
-    }
-
-    /**
-     *  Test to see if the contract has expired.
-     *  @return true if the expiry date has been reached.
-     */
-    function hasExpired()
-        external
-        view
-        returns (bool)
-    {
-        return now >= expiry;
+        return balances[staker] > 0;
     }
 }

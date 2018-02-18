@@ -1,12 +1,11 @@
 const assertThrows = require('../utils/assertThrows')
-const { makeTime } = require('../utils/fakes')
 
 const MockKey = artifacts.require('./mocks/MockKEY.sol')
 const StakedAccess = artifacts.require('./StakedAccess.sol')
 
 contract('StakedAccess (creation)', ([owner]) => {
-  const price = 10
-  const expiry = makeTime()
+  const price = 10000000000000000000 // 10 KEY
+  const period = 2592000 // 30 days
 
   let token
 
@@ -18,7 +17,7 @@ contract('StakedAccess (creation)', ([owner]) => {
     let escrow
 
     before(async () => {
-      escrow = await StakedAccess.new(expiry, price, token.address)
+      escrow = await StakedAccess.new(price, token.address, period)
     })
 
     it('created the contract', () => {
@@ -32,13 +31,13 @@ contract('StakedAccess (creation)', ([owner]) => {
   })
 
   context('given invalid parameters', () => {
-    it('will not create a contract with an invalid date', async () =>
-      assertThrows(StakedAccess.new(makeTime(-100), price, token.address)))
-
     it('will not create a contract with an invalid price', async () =>
-      assertThrows(StakedAccess.new(expiry, 0, token.address)))
+      assertThrows(StakedAccess.new(0, token.address, period)))
 
     it('will not create a contract with an invalid token address', async () =>
-      assertThrows(StakedAccess.new(expiry, price, '0x0')))
+      assertThrows(StakedAccess.new(price, '0x0', period)))
+
+    it('will not create a contract with an invalid staking period', async () =>
+      assertThrows(StakedAccess.new(price, token.address, 0)))
   })
 })
