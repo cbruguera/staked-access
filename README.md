@@ -2,6 +2,8 @@
 
 Contracts that provide access to a marketplace based on the staking of KEY by participants
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/SelfKeyFoundation/staked-access.svg)](https://greenkeeper.io/)
+
 * `develop` — [![CircleCI](https://circleci.com/gh/SelfKeyFoundation/staked-access/tree/develop.svg?style=svg)](https://circleci.com/gh/SelfKeyFoundation/staked-access/tree/develop) [![codecov](https://codecov.io/gh/SelfKeyFoundation/staked-access/branch/develop/graph/badge.svg)](https://codecov.io/gh/SelfKeyFoundation/staked-access)
 * `master` — [![CircleCI](https://circleci.com/gh/SelfKeyFoundation/staked-access/tree/master.svg?style=svg)](https://circleci.com/gh/SelfKeyFoundation/staked-access/tree/master) [![codecov](https://codecov.io/gh/SelfKeyFoundation/staked-access/branch/master/graph/badge.svg)](https://codecov.io/gh/SelfKeyFoundation/staked-access)
 
@@ -58,6 +60,12 @@ We provide the following linting options
 
 * `npm run lint:sol` — to lint the Solidity files, and
 * `npm run lint:js` — to lint the Javascript.
+
+## Deployment
+
+Deploy the contracts as follows
+
+_Carlos to complete_
 
 ## Contributing
 
