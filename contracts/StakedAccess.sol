@@ -102,6 +102,17 @@ contract StakedAccess is Ownable {
     }
 
     /**
+     *  Owner can change the price anytime. Note: price should include all decimal places.
+     *  Stakes previously made are not affected.
+     *  @param _price - New price to set for all future stakes
+     */
+    function setPrice(uint256 _price) onlyOwner public {
+        require(_price > 0);
+
+        price = _price;
+    }
+
+    /**
      *  Stake `price` amount of `KEY`.
      */
     function stake()

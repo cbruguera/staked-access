@@ -4,12 +4,13 @@ const { getLog } = require('../utils/txHelpers')
 const MockKey = artifacts.require('./mocks/MockKEY.sol')
 const StakedAccess = artifacts.require('./StakedAccess.sol')
 
-contract('StakedAccess', accounts => {
+contract('StakedAccess (interactions)', accounts => {
   const [
+    owner,
     sender, // a regular sender
     sender2, // a sender who has failed to approve a transfer of KEY
     sender3 // a sender with no KEY
-  ] = accounts.slice(1)
+  ] = accounts.slice(0)
 
   const price = 10
   const period = 2592000 // 30 days
@@ -67,5 +68,22 @@ contract('StakedAccess', accounts => {
         assert.isFalse(await escrow.hasStake(sender3))
       })
     })
+  })
+
+  context('owner', () => {
+    it('can change the price', async () => {
+      const newPrice = 234234999
+      await escrow.setPrice(newPrice, { from: owner })
+      const contractPrice = await escrow.price.call()
+      assert.equal(contractPrice.toNumber(), newPrice)
+
+      // Revert to old price
+      await escrow.setPrice(price, { from: owner })
+    })
+  })
+
+  context('not owner', () => {
+    it('cannot change the price', () =>
+      assertThrows(escrow.setPrice(999999, { from: sender })))
   })
 })
