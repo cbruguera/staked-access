@@ -74,16 +74,33 @@ contract('StakedAccess (interactions)', accounts => {
     it('can change the price', async () => {
       const newPrice = 234234999
       await escrow.setPrice(newPrice, { from: owner })
-      const contractPrice = await escrow.price.call()
+      let contractPrice = await escrow.price.call()
       assert.equal(contractPrice.toNumber(), newPrice)
 
       // Revert to old price
       await escrow.setPrice(price, { from: owner })
+      contractPrice = await escrow.price.call()
+      assert.equal(contractPrice.toNumber(), price)
+    })
+
+    it('can change the staking period', async () => {
+      const newPeriod = 999999
+      await escrow.setPeriod(newPeriod, { from: owner })
+      let contractPeriod = await escrow.period.call()
+      assert.equal(contractPeriod.toNumber(), newPeriod)
+
+      // Revert to old price
+      await escrow.setPeriod(period, { from: owner })
+      contractPeriod = await escrow.period.call()
+      assert.equal(contractPeriod.toNumber(), period)
     })
   })
 
   context('not owner', () => {
     it('cannot change the price', () =>
       assertThrows(escrow.setPrice(999999, { from: sender })))
+
+    it('cannot change the staking period', () =>
+      assertThrows(escrow.setPeriod(7, { from: sender })))
   })
 })
