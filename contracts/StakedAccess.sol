@@ -21,7 +21,7 @@ contract StakedAccess is Ownable {
     uint256 public price;
 
     // the MINIMUM time a staking should be done before allowing release by sender
-    uint256 public stakePeriod;
+    uint256 public period;
 
     // the ERC20 token this contract will receive as stake
     ERC20 private token;
@@ -98,7 +98,7 @@ contract StakedAccess is Ownable {
 
         price = _price;
         token = ERC20(_token);
-        stakePeriod = _period;
+        period = _period;
     }
 
     /**
@@ -113,6 +113,17 @@ contract StakedAccess is Ownable {
     }
 
     /**
+     *  Owner can change the minimum staking period. Time should be in UNIX format.
+     *  Stakes previously made are not affected.
+     *  @param _period - New period to set for all future stakes
+     */
+    function setPeriod(uint256 _period) onlyOwner public {
+        require(_period > 0);
+
+        period = _period;
+    }
+
+    /**
      *  Stake `price` amount of `KEY`.
      */
     function stake()
@@ -122,7 +133,7 @@ contract StakedAccess is Ownable {
         senderHasApprovedTransfer()
     {
         balances[msg.sender] = price;
-        releaseDates[msg.sender] = now + stakePeriod;
+        releaseDates[msg.sender] = now + period;
         token.safeTransferFrom(msg.sender, this, price);
 
         KEYStaked(msg.sender, price);
