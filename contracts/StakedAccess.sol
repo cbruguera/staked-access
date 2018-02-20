@@ -2,6 +2,7 @@
 
 pragma solidity ^0.4.19;
 
+import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import 'zeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'zeppelin-solidity/contracts/token/ERC20/SafeERC20.sol';
@@ -13,6 +14,7 @@ import 'zeppelin-solidity/contracts/token/ERC20/SafeERC20.sol';
  */
 contract StakedAccess is Ownable {
     using SafeERC20 for ERC20;
+    using SafeMath for uint256;
 
     // the dates after which funds can be retrieved back by their original senders
     mapping(address => uint256) public releaseDates;
@@ -133,7 +135,7 @@ contract StakedAccess is Ownable {
         senderHasApprovedTransfer()
     {
         balances[msg.sender] = price;
-        releaseDates[msg.sender] = now + period;
+        releaseDates[msg.sender] = now.add(period);
         token.safeTransferFrom(msg.sender, this, price);
 
         KEYStaked(msg.sender, price);
