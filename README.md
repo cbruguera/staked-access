@@ -28,40 +28,40 @@ following attributes:
 
 #### Public State Variables
 
-`releaseDates`: A mapping from addresses to a datetime in Unix format, stating the moment at which
-the staking can be released.
+**releaseDates[address]:** A mapping from addresses to a datetime in Unix format, stating the moment
+at which the staking can be released.
 
-`price`: The token amount to be staked. This number should include all 18 decimals (e.g. for a
-  staking price of 30 _KEY_, `price`  should be set to 30000000000000000000).
+**price:** The token amount to be staked. This number should include all 18 decimals (e.g. for a
+  staking price of 30 _KEY_, `price`  should be set to `30000000000000000000`).
 
-`period`: The minimum amount of _seconds_ that each stake should be locked for before allowing
+**period:** The minimum amount of _seconds_ that each stake should be locked for before allowing
 token retrieval.
 
 #### Public Functions
 
-`stake()`: On invoking the `stake()` function, an mount of tokens defined by `price` will be
+**stake()**: On invoking the `stake()` function, an mount of tokens defined by `price` will be
 deducted from the sender address balance, and be kept locked in the staking contract until the
 due staking period has been fulfilled. For the contract to be able to deduct tokens on behalf of
 the user, the user **must previously call the approve method of the token contract.**
 
-`retrieve()`: If the corresponding release date for the sender has already been reached, the sender
+**retrieve()**: If the corresponding release date for the sender has already been reached, the sender
 can invoke the `retrieve()` function, in which case the staked amount is sent back to the owner
 wallet.
 
-`hasStake(address)`: returns true if the given address has a stake above zero on the contract, otherwise it returns false.
+**hasStake(address):** returns true if the given address has a stake above zero on the contract, otherwise it returns false.
 
-`setPrice(uint)` (**only owner**): Staking price can be changed anytime by the contract
+**setPrice(uint) (only owner):** Staking price can be changed anytime by the contract
 owner.
 
-`setPeriod(uint)` (**only owner**): Staking period can be changed anytime by the contract
+**setPeriod(uint) (only owner):** Staking period can be changed anytime by the contract
 owner. This won't affect the release date of stakes already in place.
 
 #### Events
 
-`KEYStaked(address by, uint amount)`: Emitted when an address has successfully staked an amount of
+**KEYStaked(address by, uint amount):** Emitted when an address has successfully staked an amount of
 _KEY_.
 
-`KEYRetrieved(address to, uint amount)`: Emitted when a _KEY_ owner has released the tokens
+**KEYRetrieved(address to, uint amount):** Emitted when a _KEY_ owner has released the tokens
 previously staked.
 
 ## Development
