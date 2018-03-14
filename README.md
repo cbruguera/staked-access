@@ -9,7 +9,7 @@ Contracts that provide access to a marketplace based on the staking of KEY by pa
 
 ## Overview
 
-The `StakedAccess` contracts by the SelfKeyFoundation provide the following functionality.
+The `StakedAccess` contract provides the following functionality.
 
 1. Addresses are able to "stake" _KEY_ into a smart contract, reserving an amount of tokens to
 indicate their willingness to participate in a particular Selfkey Marketplace. The tokens staked in
@@ -21,12 +21,12 @@ this manner are kept "locked" for a set amount of time defined by the `period` a
 staking contract address and the corresponding staking price (including all decimal places). This is
 to allow the staking contract to spend funds (up to the limit set) on behalf of its owner.
 
-### StakedAccess contract
+### StakedAccess Contract Interface
 
 All staking functionality is implemented by the `StakedAccess` contract, which includes the
 following attributes:
 
-#### Public state Variables
+#### Public State Variables
 
 `releaseDates`: A mapping from addresses to a datetime in Unix format, stating the moment at which
 the staking can be released.
@@ -37,7 +37,7 @@ the staking can be released.
 `period`: The minimum amount of _seconds_ that each stake should be locked for before allowing
 token retrieval.
 
-#### Functions
+#### Public Functions
 
 `stake()`: On invoking the `stake()` function, an mount of tokens defined by `price` will be
 deducted from the sender address balance, and be kept locked in the staking contract until the
@@ -74,7 +74,7 @@ The smart contracts are being implemented in Solidity `0.4.19`.
 * [truffle](http://truffleframework.com/), which is a comprehensive framework for Ethereum development. `npm install -g truffle` — this should install Truffle v4+.  Check that with `truffle version`.
 * [Access to the KYC_Chain Jira](https://kyc-chain.atlassian.net)
 
-### Initialisation
+### Initialization
 
     npm install
 
@@ -113,7 +113,7 @@ We provide the following linting options
 
 Deploy the contracts as follows
 
-_Carlos to complete_
+**(TO DO)**
 
 ## Contributing
 
