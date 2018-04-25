@@ -60,8 +60,5 @@
     "web3": "^0.20.4",
     "web3-provider-engine": "^8.6.1",
     "zeppelin-solidity": "^1.6.0"
-  },
-  "greenkeeper": {
-    "ignore": ["web3", "web3-provider-engine"]
   }
 }

@@ -14,6 +14,7 @@ contract('StakedAccess (interactions)', accounts => {
 
   const price = 10
   const period = 2592000 // 30 days
+  const now = new Date().getTime() / 1000
 
   let escrow
   let token
@@ -21,28 +22,30 @@ contract('StakedAccess (interactions)', accounts => {
   before(async () => {
     token = await MockKey.new()
     // create an escrow
-    escrow = await StakedAccess.new(price, token.address, period)
+    escrow = await StakedAccess.new(token.address, period)
 
     // make sure sender and sender2 have some KEY
-    await token.freeMoney(sender, price)
+    await token.freeMoney(sender, price * 2)
     await token.freeMoney(sender2, price)
     await token.approve(escrow.address, price, { from: sender })
   })
 
   context('stake', () => {
-    // deadbeat sender has has no money
+    // sender has has no money
     context('sender without funds', () => {
-      it("can't stake KEY", () => assertThrows(escrow.stake({ from: sender3 })))
+      it("can't stake KEY", () =>
+        assertThrows(escrow.stake(price, { from: sender3 })))
     })
 
-    // lazy sender has has money but has not approved transfer
+    // sender has has money but has not approved transfer
     context('sender that has not approved', () => {
-      it("can't stake KEY", () => assertThrows(escrow.stake({ from: sender2 })))
+      it("can't stake KEY", () =>
+        assertThrows(escrow.stake(price, { from: sender2 })))
     })
 
     it('sender with approved amount of KEY can stake', async () => {
       const balance1 = await token.balanceOf(sender)
-      const tx = await escrow.stake({ from: sender })
+      const tx = await escrow.stake(price, { from: sender })
       const balance2 = await token.balanceOf(sender)
       const staked = await escrow.hasStake(sender)
       assert.isTrue(staked)
@@ -50,13 +53,17 @@ contract('StakedAccess (interactions)', accounts => {
       assert.equal(balance2.toNumber(), balance1.toNumber() - price)
     })
 
-    it('sender who has staked can not stake again', async () =>
-      assertThrows(escrow.stake({ from: sender })))
+    it('sender who has staked can stake again', async () => {
+      await token.approve(escrow.address, price, { from: sender })
+      const tx = await escrow.stake(price, { from: sender })
+      const stakeBalance = await escrow.balances.call(sender)
+      assert.equal(Number(stakeBalance), price * 2)
+    })
   })
 
   context('after successful stake', () => {
-    it('sender can not retreive their stake yet', async () =>
-      assertThrows(escrow.retrieve({ from: sender })))
+    it('sender can not retrieve their stake yet', async () =>
+      assertThrows(escrow.retrieveAll({ from: sender })))
 
     context('hasStake', () => {
       it('escrow has funds for the sender', async () => {
@@ -67,22 +74,15 @@ contract('StakedAccess (interactions)', accounts => {
       it('sender with no staked funds returns false', async () => {
         assert.isFalse(await escrow.hasStake(sender3))
       })
+
+      it('retrieves release date for sender', async () => {
+        const releaseDate = await escrow.getReleaseDate(sender)
+        assert.isAbove(Number(releaseDate), now)
+      })
     })
   })
 
   context('owner', () => {
-    it('can change the price', async () => {
-      const newPrice = 234234999
-      await escrow.setPrice(newPrice, { from: owner })
-      let contractPrice = await escrow.price.call()
-      assert.equal(contractPrice.toNumber(), newPrice)
-
-      // Revert to old price
-      await escrow.setPrice(price, { from: owner })
-      contractPrice = await escrow.price.call()
-      assert.equal(contractPrice.toNumber(), price)
-    })
-
     it('can change the staking period', async () => {
       const newPeriod = 999999
       await escrow.setPeriod(newPeriod, { from: owner })
@@ -97,9 +97,6 @@ contract('StakedAccess (interactions)', accounts => {
   })
 
   context('not owner', () => {
-    it('cannot change the price', () =>
-      assertThrows(escrow.setPrice(999999, { from: sender })))
-
     it('cannot change the staking period', () =>
       assertThrows(escrow.setPeriod(7, { from: sender })))
   })

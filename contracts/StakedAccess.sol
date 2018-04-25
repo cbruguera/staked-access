@@ -19,31 +19,20 @@ contract StakedAccess is Ownable {
     // the dates after which funds can be retrieved back by their original senders
     mapping(address => uint256) public releaseDates;
 
-    // the amount of KEY that needs to be staked in order to access the associated service
-    uint256 public price;
-
     // the MINIMUM time a staking should be done before allowing release by sender
     uint256 public period;
 
     // the ERC20 token this contract will receive as stake
-    ERC20 private token;
+    ERC20 public token;
 
     // mapping of addresses to the amounts they have staked
-    mapping(address => uint) private balances;
+    mapping(address => uint) public balances;
 
     /**
      *  Require that the release date has been reached for the given sender.
      */
     modifier senderCanRetrieve() {
         require(now >= releaseDates[msg.sender]);
-        _;
-    }
-
-    /**
-     *  Ensures the message sender has the appropriate balance of `KEY`.
-     */
-    modifier senderCanAfford() {
-        require(token.balanceOf(msg.sender) >= price);
         _;
     }
 
@@ -63,13 +52,6 @@ contract StakedAccess is Ownable {
         _;
     }
 
-    /**
-     *  Ensures the message sender has the approved the transfer of enough `KEY`.
-     */
-    modifier senderHasApprovedTransfer() {
-        require(token.allowance(msg.sender, this) >= price);
-        _;
-    }
 
     /**
      *  Emitted when an amount of `KEY` has been staked.
@@ -87,32 +69,19 @@ contract StakedAccess is Ownable {
 
     /**
      *  StakedAccess constructor.
-     *  @param _price — The amount of `KEY` that needs to be staked in order to access the associated service.
      *  @param _token — The `ERC20` token to use as currency. (Injected to ease testing).
      *  @param _period — The minimum time period each sender has to stake their tokens
      */
-    function StakedAccess(uint256 _price, address _token, uint256 _period)
+    function StakedAccess(address _token, uint256 _period)
         public
     {
-        require(_price > 0);
         require(_token != address(0));
         require(_period > 0);
 
-        price = _price;
         token = ERC20(_token);
         period = _period;
     }
 
-    /**
-     *  Owner can change the price anytime. Note: price should include all decimal places.
-     *  Stakes previously made are not affected.
-     *  @param _price - New price to set for all future stakes
-     */
-    function setPrice(uint256 _price) onlyOwner public {
-        require(_price > 0);
-
-        price = _price;
-    }
 
     /**
      *  Owner can change the minimum staking period. Time should be in UNIX format.
@@ -126,40 +95,51 @@ contract StakedAccess is Ownable {
     }
 
     /**
-     *  Stake `price` amount of `KEY`.
+     *  Stake a certain amount of tokens.
      */
-    function stake()
+    function stake(uint256 amount)
         external
-        senderHasNoStake()
-        senderCanAfford()
-        senderHasApprovedTransfer()
     {
-        balances[msg.sender] = price;
-        releaseDates[msg.sender] = now.add(period);
-        token.safeTransferFrom(msg.sender, this, price);
+        require(token.balanceOf(msg.sender) >= amount);
+        require(token.allowance(msg.sender, this) >= amount);
 
-        KEYStaked(msg.sender, price);
+        balances[msg.sender] += amount;
+        releaseDates[msg.sender] = now.add(period);
+        token.safeTransferFrom(msg.sender, this, amount);
+
+        KEYStaked(msg.sender, amount);
     }
 
     /**
-     *  Once the contract has expired, the `KEY` owner may retrieve their `KEY`.
+     *  Once the contract has expired, the stake owner may retrieve any amount of tokens.
      */
-    function retrieve()
-        external
+    function retrieve(uint256 amount)
+        public
         senderHasStake()
         senderCanRetrieve()
     {
-        uint256 amount = balances[msg.sender];
-        balances[msg.sender] = 0;
+        balances[msg.sender] -= amount;
         token.safeTransfer(msg.sender, amount);
 
         KEYRetrieved(msg.sender, amount);
     }
 
     /**
-     *  Test to see if an arbitrary address has staked `KEY`.
-     *  @param staker — The address claiming to have staked `KEY`.
-     *  @return true if the staker has staked `KEY`.
+     *  Once the contract has expired, the stake owner may retrieve their total balance of tokens.
+     */
+    function retrieveAll()
+        public
+        senderHasStake()
+        senderCanRetrieve()
+    {
+        uint256 amount = balances[msg.sender];
+        retrieve(amount);
+    }
+
+    /**
+     *  Test to see if an address has staked tokens.
+     *  @param staker — The address to be checked for stake amount.
+     *  @return true if the staker has staked tokens.
      */
     function hasStake(address staker)
         external
@@ -167,5 +147,18 @@ contract StakedAccess is Ownable {
         returns (bool)
     {
         return balances[staker] > 0;
+    }
+
+    /**
+     *  Get the date in which funds corresponding to an address can be retrieved.
+     *  @param staker — The address to be checked for release date.
+     *  @return the Unix timestamp of the release date.
+     */
+    function getReleaseDate(address staker)
+        external
+        view
+        returns (uint256)
+    {
+        return releaseDates[staker];
     }
 }
