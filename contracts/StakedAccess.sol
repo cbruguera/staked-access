@@ -1,6 +1,6 @@
 /* solhint-disable not-rely-on-time */
 
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import 'zeppelin-solidity/contracts/token/ERC20/ERC20.sol';
@@ -28,11 +28,15 @@ contract StakedAccess is Ownable {
     // mapping of addresses to the amounts they have staked
     mapping(address => uint) public balances;
 
+    // events
+    event KEYStaked(address by, uint amount);
+    event KEYRetrieved(address to, uint amount);
+
     /**
      *  Require that the release date has been reached for the given sender.
      */
     modifier senderCanRetrieve() {
-        require(now >= releaseDates[msg.sender]);
+        require(now >= releaseDates[msg.sender], "Cannot retrieve before release date");
         _;
     }
 
@@ -40,43 +44,20 @@ contract StakedAccess is Ownable {
      *  Ensures the message sender has staked `KEY`.
      */
     modifier senderHasStake() {
-        require(balances[msg.sender] > 0);
+        require(balances[msg.sender] > 0, "Address has no stake balance");
         _;
     }
-
-    /**
-     *  Ensures the message sender has not yet staked `KEY`.
-     */
-    modifier senderHasNoStake() {
-        require(balances[msg.sender] == 0);
-        _;
-    }
-
-
-    /**
-     *  Emitted when an amount of `KEY` has been staked.
-     *  @param by — The address that staked the `KEY`.
-     *  @param amount — The amount of `KEY` staked.
-     */
-    event KEYStaked(address by, uint amount);
-
-    /**
-     *  Emitted when an amount of `KEY` has been retrieved by its owner.
-     *  @param to — The address retrieving the `KEY`.
-     *  @param amount — The amount of `KEY` retrieved.
-     */
-    event KEYRetrieved(address to, uint amount);
 
     /**
      *  StakedAccess constructor.
      *  @param _token — The `ERC20` token to use as currency. (Injected to ease testing).
      *  @param _period — The minimum time period each sender has to stake their tokens
      */
-    function StakedAccess(address _token, uint256 _period)
+    constructor(address _token, uint256 _period)
         public
     {
-        require(_token != address(0));
-        require(_period > 0);
+        require(_token != address(0), "Invalid token address");
+        require(_period > 0, "Staking period must be above zero");
 
         token = ERC20(_token);
         period = _period;
@@ -100,14 +81,14 @@ contract StakedAccess is Ownable {
     function stake(uint256 amount)
         external
     {
-        require(token.balanceOf(msg.sender) >= amount);
-        require(token.allowance(msg.sender, this) >= amount);
+        require(token.balanceOf(msg.sender) >= amount, "Address has no funds to stake");
+        require(token.allowance(msg.sender, this) >= amount, "Address has not allowed spending");
 
         balances[msg.sender] += amount;
         releaseDates[msg.sender] = now.add(period);
         token.safeTransferFrom(msg.sender, this, amount);
 
-        KEYStaked(msg.sender, amount);
+        emit KEYStaked(msg.sender, amount);
     }
 
     /**
@@ -121,7 +102,7 @@ contract StakedAccess is Ownable {
         balances[msg.sender] -= amount;
         token.safeTransfer(msg.sender, amount);
 
-        KEYRetrieved(msg.sender, amount);
+        emit KEYRetrieved(msg.sender, amount);
     }
 
     /**

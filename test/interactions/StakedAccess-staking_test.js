@@ -33,8 +33,9 @@ contract('StakedAccess (interactions)', accounts => {
   context('stake', () => {
     // sender has has no money
     context('sender without funds', () => {
-      it("can't stake KEY", () =>
-        assertThrows(escrow.stake(price, { from: sender3 })))
+      it("can't stake KEY", () => {
+        assertThrows(escrow.stake(price, { from: sender3 }))
+      })
     })
 
     // sender has has money but has not approved transfer
