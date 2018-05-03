@@ -36,7 +36,7 @@
     "test": "truffle test",
     "test:cov": "solidity-coverage",
     "lint:sol": "solhint contracts/**/*.sol",
-    "lint:js": "eslint test/**/*.js"
+    "lint:js": "eslint --fix test/**/*.js"
   },
   "lint-staged": {
     "**/*.{js,json}": ["prettier --singlequote --no-semi --write", "git add"]
