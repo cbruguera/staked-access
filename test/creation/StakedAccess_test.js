@@ -19,21 +19,21 @@ contract('StakedAccess (creation)', ([owner]) => {
       escrow = await StakedAccess.new(token.address, period)
     })
 
-    it('created the contract', () => {
+    it('the contract is successfully deployed', async () => {
       assert.notEqual(escrow, null)
       assert.notEqual(escrow, undefined)
-    })
-
-    it('has the correct owner', async () => {
-      assert.equal(await escrow.owner(), owner)
+      const contractOwner = await escrow.owner()
+      assert.equal(contractOwner, owner)
     })
   })
 
   context('given invalid parameters', () => {
-    it('will not create a contract with an invalid token address', async () =>
-      assertThrows(StakedAccess.new('0x0', period)))
+    it('contract deployment fails', async () => {
+      // invalid token address
+      assertThrows(StakedAccess.new('0x0', period))
 
-    it('will not create a contract with an invalid staking period', async () =>
-      assertThrows(StakedAccess.new(token.address, 0)))
+      // invalid staking period
+      assertThrows(StakedAccess.new(token.address, 0))
+    })
   })
 })

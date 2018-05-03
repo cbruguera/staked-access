@@ -32,16 +32,13 @@ contract('StakedAccess (interactions)', accounts => {
 
   context('stake', () => {
     // sender has has no money
-    context('sender without funds', () => {
-      it("can't stake KEY", () => {
-        assertThrows(escrow.stake(price, { from: sender3 }))
-      })
+    it("sender without funds can't stake KEY", () => {
+      assertThrows(escrow.stake(price, { from: sender3 }))
     })
 
     // sender has has money but has not approved transfer
-    context('sender that has not approved', () => {
-      it("can't stake KEY", () =>
-        assertThrows(escrow.stake(price, { from: sender2 })))
+    it("sender that has not approved can't stake KEY", () => {
+      assertThrows(escrow.stake(price, { from: sender2 }))
     })
 
     it('sender with approved amount of KEY can stake', async () => {
@@ -63,42 +60,42 @@ contract('StakedAccess (interactions)', accounts => {
   })
 
   context('after successful stake', () => {
-    it('sender can not retrieve their stake yet', async () =>
-      assertThrows(escrow.retrieveAll({ from: sender })))
+    it('sender can not retrieve their stake yet', async () => {
+      assertThrows(escrow.retrieveAll({ from: sender }))
+    })
 
-    context('hasStake', () => {
-      it('escrow has funds for the sender', async () => {
-        const hasStake = await escrow.hasStake(sender)
-        assert.isTrue(hasStake)
-      })
+    it('contract has funds for the sender', async () => {
+      const hasStake = await escrow.hasStake(sender)
+      assert.isTrue(hasStake)
+    })
 
-      it('sender with no staked funds returns false', async () => {
-        assert.isFalse(await escrow.hasStake(sender3))
-      })
+    it('sender with no staked funds returns false on call to `hasStake()`', async () => {
+      assert.isFalse(await escrow.hasStake(sender3))
+    })
 
-      it('retrieves release date for sender', async () => {
-        const releaseDate = await escrow.getReleaseDate(sender)
-        assert.isAbove(Number(releaseDate), now)
-      })
+    it('release date for sender is updated', async () => {
+      const releaseDate = await escrow.getReleaseDate(sender)
+      assert.isAbove(Number(releaseDate), now)
     })
   })
 
-  context('owner', () => {
+  context('contract owner', () => {
     it('can change the staking period', async () => {
       const newPeriod = 999999
       await escrow.setPeriod(newPeriod, { from: owner })
       let contractPeriod = await escrow.period.call()
       assert.equal(contractPeriod.toNumber(), newPeriod)
 
-      // Revert to old price
+      // Revert to old period (for timetravel to work later)
       await escrow.setPeriod(period, { from: owner })
       contractPeriod = await escrow.period.call()
       assert.equal(contractPeriod.toNumber(), period)
     })
   })
 
-  context('not owner', () => {
-    it('cannot change the staking period', () =>
-      assertThrows(escrow.setPeriod(7, { from: sender })))
+  context('not-owner address', () => {
+    it('cannot change the staking period', () => {
+      assertThrows(escrow.setPeriod(7, { from: sender }))
+    })
   })
 })
