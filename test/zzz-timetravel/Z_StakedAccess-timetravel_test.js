@@ -1,12 +1,11 @@
-const timeTravel = require('../utils/timeTravel')
-const assertThrows = require('../utils/assertThrows')
-const { getLog } = require('../utils/txHelpers')
+const timeTravel = require("../utils/timeTravel")
+const { getLog } = require("../utils/txHelpers")
 
-const MockKey = artifacts.require('./mocks/MockKEY.sol')
-const StakedAccess = artifacts.require('./StakedAccess.sol')
+const MockKey = artifacts.require("../test/mock/MockKey.sol")
+const StakedAccess = artifacts.require("./StakedAccess.sol")
 
-contract('StakedAccess (after time travel)', accounts => {
-  const [sender, sender2] = accounts.slice(1)
+contract("StakedAccess (after time travel)", accounts => {
+  const [sender] = accounts.slice(1)
 
   const price = 10
   const period = 2592000 // 30 days
@@ -27,13 +26,13 @@ contract('StakedAccess (after time travel)', accounts => {
     await timeTravel(period)
   })
 
-  context('retrieving funds', () => {
-    it('sender can retrieve their funds', async () => {
+  context("retrieving funds", () => {
+    it("sender can retrieve their funds", async () => {
       const amount = 2
       const balance1 = await token.balanceOf(sender)
       let tx = await escrow.retrieve(amount, { from: sender })
       const balance2 = await token.balanceOf(sender)
-      assert.notEqual(getLog(tx, 'KEYRetrieved'), null)
+      assert.notEqual(getLog(tx, "KEYRetrieved"), null)
       assert.equal(balance2.toNumber(), balance1.toNumber() + amount)
 
       // sender still has some stake left

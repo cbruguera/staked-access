@@ -1,9 +1,9 @@
-const assertThrows = require('../utils/assertThrows')
+const assertThrows = require("../utils/assertThrows")
 
-const MockKey = artifacts.require('./mocks/MockKEY.sol')
-const StakedAccess = artifacts.require('./StakedAccess.sol')
+const MockKey = artifacts.require("../test/mock/MockKey.sol")
+const StakedAccess = artifacts.require("./StakedAccess.sol")
 
-contract('StakedAccess (creation)', ([owner]) => {
+contract("StakedAccess (creation)", ([owner]) => {
   const period = 2592000 // 30 days
 
   let token
@@ -12,14 +12,14 @@ contract('StakedAccess (creation)', ([owner]) => {
     token = await MockKey.new()
   })
 
-  context('given valid parameters', () => {
+  context("given valid parameters", () => {
     let escrow
 
     before(async () => {
       escrow = await StakedAccess.new(token.address, period)
     })
 
-    it('the contract is successfully deployed', async () => {
+    it("the contract is successfully deployed", async () => {
       assert.notEqual(escrow, null)
       assert.notEqual(escrow, undefined)
       const contractOwner = await escrow.owner()
@@ -27,10 +27,10 @@ contract('StakedAccess (creation)', ([owner]) => {
     })
   })
 
-  context('given invalid parameters', () => {
-    it('contract deployment fails', async () => {
+  context("given invalid parameters", () => {
+    it("contract deployment fails", async () => {
       // invalid token address
-      assertThrows(StakedAccess.new('0x0', period))
+      assertThrows(StakedAccess.new("0x0", period))
 
       // invalid staking period
       assertThrows(StakedAccess.new(token.address, 0))

@@ -1,10 +1,10 @@
-const assertThrows = require('../utils/assertThrows')
-const { getLog } = require('../utils/txHelpers')
+const assertThrows = require("../utils/assertThrows")
+const { getLog } = require("../utils/txHelpers")
 
-const MockKey = artifacts.require('./mocks/MockKEY.sol')
-const StakedAccess = artifacts.require('./StakedAccess.sol')
+const MockKey = artifacts.require("../test/mock/MockKey.sol")
+const StakedAccess = artifacts.require("./StakedAccess.sol")
 
-contract('StakedAccess (interactions)', accounts => {
+contract("StakedAccess (interactions)", accounts => {
   const [
     owner,
     sender, // a regular sender
@@ -30,7 +30,7 @@ contract('StakedAccess (interactions)', accounts => {
     await token.approve(escrow.address, price, { from: sender })
   })
 
-  context('stake', () => {
+  context("stake", () => {
     // sender has has no money
     it("sender without funds can't stake KEY", () => {
       assertThrows(escrow.stake(price, { from: sender3 }))
@@ -41,46 +41,46 @@ contract('StakedAccess (interactions)', accounts => {
       assertThrows(escrow.stake(price, { from: sender2 }))
     })
 
-    it('sender with approved amount of KEY can stake', async () => {
+    it("sender with approved amount of KEY can stake", async () => {
       const balance1 = await token.balanceOf(sender)
       const tx = await escrow.stake(price, { from: sender })
       const balance2 = await token.balanceOf(sender)
       const staked = await escrow.hasStake(sender)
       assert.isTrue(staked)
-      assert.notEqual(getLog(tx, 'KEYStaked'), null) // generated event
+      assert.notEqual(getLog(tx, "KEYStaked"), null) // generated event
       assert.equal(balance2.toNumber(), balance1.toNumber() - price)
     })
 
-    it('sender who has staked can stake again', async () => {
+    it("sender who has staked can stake again", async () => {
       await token.approve(escrow.address, price, { from: sender })
-      const tx = await escrow.stake(price, { from: sender })
+      await escrow.stake(price, { from: sender })
       const stakeBalance = await escrow.balances.call(sender)
       assert.equal(Number(stakeBalance), price * 2)
     })
   })
 
-  context('after successful stake', () => {
-    it('sender can not retrieve their stake yet', async () => {
+  context("after successful stake", () => {
+    it("sender can not retrieve their stake yet", async () => {
       assertThrows(escrow.retrieveAll({ from: sender }))
     })
 
-    it('contract has funds for the sender', async () => {
+    it("contract has funds for the sender", async () => {
       const hasStake = await escrow.hasStake(sender)
       assert.isTrue(hasStake)
     })
 
-    it('sender with no staked funds returns false on call to `hasStake()`', async () => {
+    it("sender with no staked funds returns false on call to `hasStake()`", async () => {
       assert.isFalse(await escrow.hasStake(sender3))
     })
 
-    it('release date for sender is updated', async () => {
+    it("release date for sender is updated", async () => {
       const releaseDate = await escrow.getReleaseDate(sender)
       assert.isAbove(Number(releaseDate), now)
     })
   })
 
-  context('contract owner', () => {
-    it('can change the staking period', async () => {
+  context("contract owner", () => {
+    it("can change the staking period", async () => {
       const newPeriod = 999999
       await escrow.setPeriod(newPeriod, { from: owner })
       let contractPeriod = await escrow.period.call()
@@ -93,8 +93,8 @@ contract('StakedAccess (interactions)', accounts => {
     })
   })
 
-  context('not-owner address', () => {
-    it('cannot change the staking period', () => {
+  context("not-owner address", () => {
+    it("cannot change the staking period", () => {
       assertThrows(escrow.setPeriod(7, { from: sender }))
     })
   })

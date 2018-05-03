@@ -1,4 +1,4 @@
 module.exports = {
-  copyPackages: ['zeppelin-solidity'],
-  skipFiles: ['mocks']
+  copyPackages: ["openzeppelin-solidity"],
+  skipFiles: ["mocks"]
 }
