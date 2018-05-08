@@ -1,12 +1,12 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
-import 'zeppelin-solidity/contracts/token/ERC20/StandardToken.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/StandardToken.sol';
 
 
 /**
  *  A dummy ERC20 token used for testing.
  */
-contract MockKEY is StandardToken {
+contract MockKey is StandardToken {
     string public constant name = 'SelfKey'; //solhint-disable-line const-name-snakecase
     string public constant symbol = 'KEY'; //solhint-disable-line const-name-snakecase
     uint256 public constant decimals = 18; //solhint-disable-line const-name-snakecase

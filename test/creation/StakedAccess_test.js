@@ -1,10 +1,9 @@
-const assertThrows = require('../utils/assertThrows')
+const assertThrows = require("../utils/assertThrows")
 
-const MockKey = artifacts.require('./mocks/MockKEY.sol')
-const StakedAccess = artifacts.require('./StakedAccess.sol')
+const MockKey = artifacts.require("../test/mock/MockKey.sol")
+const StakedAccess = artifacts.require("./StakedAccess.sol")
 
-contract('StakedAccess (creation)', ([owner]) => {
-  const price = 10000000000000000000 // 10 KEY
+contract("StakedAccess (creation)", ([owner]) => {
   const period = 2592000 // 30 days
 
   let token
@@ -13,31 +12,28 @@ contract('StakedAccess (creation)', ([owner]) => {
     token = await MockKey.new()
   })
 
-  context('given valid parameters', () => {
+  context("given valid parameters", () => {
     let escrow
 
     before(async () => {
-      escrow = await StakedAccess.new(price, token.address, period)
+      escrow = await StakedAccess.new(token.address, period)
     })
 
-    it('created the contract', () => {
+    it("the contract is successfully deployed", async () => {
       assert.notEqual(escrow, null)
       assert.notEqual(escrow, undefined)
-    })
-
-    it('has the correct owner', async () => {
-      assert.equal(await escrow.owner(), owner)
+      const contractOwner = await escrow.owner()
+      assert.equal(contractOwner, owner)
     })
   })
 
-  context('given invalid parameters', () => {
-    it('will not create a contract with an invalid price', async () =>
-      assertThrows(StakedAccess.new(0, token.address, period)))
+  context("given invalid parameters", () => {
+    it("contract deployment fails", async () => {
+      // invalid token address
+      assertThrows(StakedAccess.new("0x0", period))
 
-    it('will not create a contract with an invalid token address', async () =>
-      assertThrows(StakedAccess.new(price, '0x0', period)))
-
-    it('will not create a contract with an invalid staking period', async () =>
-      assertThrows(StakedAccess.new(price, token.address, 0)))
+      // invalid staking period
+      assertThrows(StakedAccess.new(token.address, 0))
+    })
   })
 })
