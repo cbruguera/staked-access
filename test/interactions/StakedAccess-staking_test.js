@@ -42,13 +42,13 @@ contract("StakedAccess (interactions)", accounts => {
     })
 
     it("sender with approved amount of KEY can stake", async () => {
-      const balance1 = await token.balanceOf(sender)
+      const balance1 = await token.balanceOf.call(sender)
       const tx = await escrow.stake(price, { from: sender })
-      const balance2 = await token.balanceOf(sender)
+      const balance2 = await token.balanceOf.call(sender)
       const staked = await escrow.hasStake(sender)
       assert.isTrue(staked)
       assert.notEqual(getLog(tx, "KEYStaked"), null) // generated event
-      assert.equal(balance2.toNumber(), balance1.toNumber() - price)
+      assert.equal(Number(balance2), Number(balance1) - price)
     })
 
     it("sender who has staked can stake again", async () => {

@@ -29,11 +29,11 @@ contract("StakedAccess (after time travel)", accounts => {
   context("retrieving funds", () => {
     it("sender can retrieve their funds", async () => {
       const amount = 2
-      const balance1 = await token.balanceOf(sender)
+      const balance1 = await token.balanceOf.call(sender)
       let tx = await escrow.retrieve(amount, { from: sender })
-      const balance2 = await token.balanceOf(sender)
+      const balance2 = await token.balanceOf.call(sender)
       assert.notEqual(getLog(tx, "KEYRetrieved"), null)
-      assert.equal(balance2.toNumber(), balance1.toNumber() + amount)
+      assert.equal(Number(balance2), Number(balance1) + amount)
 
       // sender still has some stake left
       assert.isTrue(await escrow.hasStake(sender))
