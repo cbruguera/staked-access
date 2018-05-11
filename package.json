@@ -46,9 +46,7 @@
     "url": "git+https://github.com/SelfKeyFoundation/staked-access.git"
   },
   "keywords": ["identity"],
-  "author": "Dave Sag <david.sag@industrie.co>",
-  "contributors": ["Carlos Bruguera <cbruguera@gmail.com>"],
-  "license": "MIT",
+  "author": "Carlos Bruguera <cbruguera@gmail.com>",
   "bugs": {
     "url": "https://github.com/SelfKeyFoundation/staked-access/issues"
   },
