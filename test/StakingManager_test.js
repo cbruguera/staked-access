@@ -81,6 +81,14 @@ contract("StakingManager", accounts => {
       )
       assert.equal(Number(stakeBalance), 1000)
     })
+
+    it("can check whether a stake has been done or not", async () => {
+      let has = await stakingManager.hasStake(sender, "ExchangeBar")
+      assert.isTrue(has)
+
+      has = await stakingManager.hasStake(sender, "ExchangeHarrb")
+      assert.isFalse(has)
+    })
   })
 
   context("Withdrawal", () => {
