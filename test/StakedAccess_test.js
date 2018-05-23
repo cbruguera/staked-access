@@ -1,4 +1,4 @@
-const assertThrows = require("../utils/assertThrows")
+/*const assertThrows = require("./utils/assertThrows")
 
 const MockKey = artifacts.require("../test/mock/MockKey.sol")
 const StakedAccess = artifacts.require("./StakedAccess.sol")
@@ -37,3 +37,4 @@ contract("StakedAccess (creation)", ([owner]) => {
     })
   })
 })
+*/

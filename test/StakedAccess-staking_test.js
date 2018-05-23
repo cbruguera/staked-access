@@ -1,5 +1,5 @@
-const assertThrows = require("../utils/assertThrows")
-const { getLog } = require("../utils/txHelpers")
+/*const assertThrows = require("./utils/assertThrows")
+const { getLog } = require("./utils/txHelpers")
 
 const MockKey = artifacts.require("../test/mock/MockKey.sol")
 const StakedAccess = artifacts.require("./StakedAccess.sol")
@@ -99,3 +99,4 @@ contract("StakedAccess (interactions)", accounts => {
     })
   })
 })
+*/
