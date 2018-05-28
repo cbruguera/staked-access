@@ -120,11 +120,12 @@ contract("StakingManager", accounts => {
     })
 
     it("address can set staking minimum for serviceID = hash(address)", async () => {
-      await stakingManager.setServiceMinimumStake(1000, {
+      const minimum = 1000
+      await stakingManager.setServiceMinimumStake(minimum, {
         from: serviceProvider
       })
-      const minimum = await stakingManager.stakeMinimum.call(serviceID)
-      assert.equal(Number(minimum), 1000)
+      const setMinimum = await stakingManager.stakeMinimum.call(serviceID)
+      assert.equal(Number(setMinimum), minimum)
     })
 
     it("sender cannot stake below minimum", async () => {
@@ -137,6 +138,12 @@ contract("StakingManager", accounts => {
       await stakingManager.stake(1000, serviceID, { from: sender })
       const stakeBalance = await stakingManager.balances.call(sender, serviceID)
       assert.equal(Number(stakeBalance), 1000)
+
+      const isAbove = await stakingManager.hasStakeAboveMinimum.call(
+        sender,
+        serviceID
+      )
+      assert.isTrue(isAbove)
     })
 
     it("sender cannot withdraw her stake (yet)", async () => {
@@ -148,6 +155,13 @@ contract("StakingManager", accounts => {
       await stakingManager.withdraw(500, serviceID, { from: sender })
       const stakeBalance = await stakingManager.balances.call(sender, serviceID)
       assert.equal(Number(stakeBalance), 500)
+
+      // stake is now below minimum
+      const isAbove = await stakingManager.hasStakeAboveMinimum.call(
+        sender,
+        serviceID
+      )
+      assert.isFalse(isAbove)
     })
   })
 })

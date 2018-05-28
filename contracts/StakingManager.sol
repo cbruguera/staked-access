@@ -119,4 +119,15 @@ contract StakingManager is Ownable {
 
         return balance > 0; // && balance >= stakeMinimum[serviceID];
     }
+
+    /**
+     *  Returns whether there's a stake done by a staker for a certain serviceID above a set minimum
+     *  @param staker - stake sender address
+     *  @param serviceID - Service ID upon which the stake would be done
+     */
+    function hasStakeAboveMinimum(address staker, bytes32 serviceID) public view returns(bool) {
+        uint256 balance = balances[staker][serviceID];
+
+        return balance > 0 && balance >= stakeMinimum[serviceID];
+    }
 }
