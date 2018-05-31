@@ -25,8 +25,8 @@
     "husky": "^0.14.3",
     "lint-staged": "^7.1.0",
     "prettier": "^1.12.1",
-    "solhint": "^1.1.10",
-    "solidity-coverage": "^0.5.0"
+    "solhint": "^1.2.1",
+    "solidity-coverage": "^0.5.4"
   },
   "scripts": {
     "precommit": "lint-staged",
@@ -54,8 +54,9 @@
   "dependencies": {
     "bip39": "^2.5.0",
     "ethereumjs-wallet": "^0.6.0",
+    "hoek": "^4.2.1",
+    "openzeppelin-solidity": "^1.9.0",
     "web3": "^0.20.4",
-    "web3-provider-engine": "^8.6.1",
-    "openzeppelin-solidity": "^1.9.0"
+    "web3-provider-engine": "^8.6.1"
   }
 }
