@@ -1,5 +1,5 @@
 {
-  "name": "staked-access",
+  "name": "selfkey-staking",
   "version": "1.0.0",
   "description":
     "Contracts that provide access to a marketplace based on the staking of KEY by participants",
@@ -43,14 +43,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SelfKeyFoundation/staked-access.git"
+    "url": "git+https://github.com/SelfKeyFoundation/selfkey-staking.git"
   },
   "keywords": ["identity"],
   "author": "Carlos Bruguera <cbruguera@gmail.com>",
   "bugs": {
-    "url": "https://github.com/SelfKeyFoundation/staked-access/issues"
+    "url": "https://github.com/SelfKeyFoundation/selfkey-staking/issues"
   },
-  "homepage": "https://github.com/SelfKeyFoundation/staked-access#readme",
+  "homepage": "https://github.com/SelfKeyFoundation/selfkey-staking#readme",
   "dependencies": {
     "bip39": "^2.5.0",
     "ethereumjs-wallet": "^0.6.0",
