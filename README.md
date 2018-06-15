@@ -1,4 +1,4 @@
-# staked-access
+# selfkey-staking
 
 Contracts that provide access to a marketplace based on the staking of KEY by participants
 
