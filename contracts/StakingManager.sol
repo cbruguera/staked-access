@@ -21,7 +21,7 @@ contract StakingManager {
     mapping(address => mapping(bytes32 => uint256)) public stakeMinimum;
 
     // counters
-    mapping(address => mapping(bytes32 => uint256) public totalStakeByServiceID;
+    mapping(address => mapping(bytes32 => uint256)) public totalStakeByServiceID;
     mapping(address => uint256) public totalStakeByServiceOwner;
     mapping(address => uint256) public totalStakeBySender;
 
@@ -48,7 +48,7 @@ contract StakingManager {
         require(token.allowance(msg.sender, address(this)) >= amount,
             "Address has not allowed spending");
         require(token.balanceOf(msg.sender) >= amount, "Address has no funds to stake");
-        require(amount.add(balances[msg.sender][serviceID]) >= stakeMinimum[serviceID],
+        require(amount.add(balances[msg.sender][serviceOwner][serviceID]) >= stakeMinimum[serviceOwner][serviceID],
             "Stake amount under minimum");
 
         balances[msg.sender][serviceOwner][serviceID] += amount;
@@ -71,18 +71,16 @@ contract StakingManager {
     /**
      *  Withdraws a given amount from a stake made for a certain service ID.
      *  Only staker can withdraw.
-     *  @param amount - token quantity to be withdrawn
-     *  @param serviceOWner - The address that owns such service
+     *  @param serviceOwner - The address that owns such service
      *  @param serviceID - Service to withdraw stake from
      */
     function withdraw(address serviceOwner, bytes32 serviceID) public returns(uint256) {
         require(releaseDates[msg.sender][serviceOwner][serviceID] <= now, "Stake is still locked");
-        require(balances[msg.sender][serviceOwner][serviceID] >= amount, "Not enough stake");
 
         uint256 funds = balances[msg.sender][serviceOwner][serviceID];
         balances[msg.sender][serviceOwner][serviceID] = 0;
         totalStakeBySender[msg.sender] -= funds;
-        totalStakeByOwner[serviceOwner] -= funds;
+        totalStakeByServiceOwner[serviceOwner] -= funds;
         totalStakeByServiceID[serviceOwner][serviceID] -= funds;
 
         token.safeTransfer(msg.sender, funds);
