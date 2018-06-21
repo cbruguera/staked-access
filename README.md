@@ -9,21 +9,17 @@ Contracts that provide access to a marketplace based on the staking of KEY by pa
 
 The `StakingManager` contract provides the following functionality.
 
-1. Addresses are able to "stake" _KEY_ linked to a given _serviceID_. This allows to reserve different amount of tokens simultaneously in relation to different services .
-<!--- The tokens staked in
-this manner are kept "locked" for a set amount of time defined by the `period` attribute in the `StakedAccess` contract. -->
+1. Addresses are able to "stake" _KEY_ linked to a given _Service Owner_ address and a _serviceID_ 32-byte string. This allows to reserve different amount of tokens simultaneously in relation to different services .
 
 2. Staked tokens can only be retrieved by the original sender.
 
-3. Any Ethereum address is able to associate itself with a unique serviceID for setting up custom
-parameters, such as **minimum stake** and **lock-in period**. This is done through the methods
-`setServiceMinimumStake` and `setServiceStakePeriod` respectively. In such case, the _serviceID_
-corresponding to the caller address will be the (keccak256) hash of the caller address. (Thus arbitrary serviceIDs such as "Example Service Foo" cannot set these parameters).
+3. Any Ethereum address is able to associate itself with multiple "serviceIDs" through setting up custom parameters such as **minimum stake** and **lock-in period** per serviceID. This is done through the methods `setServiceMinimumStake` and `setServiceStakePeriod` respectively.
 
 3. For the staking functionality to work, sender has to invoke `approve(stakingContractAddress, stakingAmount)` against on the **token contract** first, passing the staking contract address and
 the corresponding staking amount (including all decimal places). This is to allow the staking contract to spend funds (up to the limit set) on behalf of its owner. After token spending approval,
-`StakingManager` method `stake` can be invoked by passing an amount and a _serviceID_. If multiple
-stakes need to be done, sender can make one big approval that sums up to the desired amount.
+`StakingManager` method `stake` can be invoked by passing an amount, a _serviceOnwer_ address and a _serviceID_. For "global" services not tied to any particular service owner, the "zero address" can be used as the serviceOwner (i.e. `0x0000000000000000000000000000000000000000`).
+
+If multiple stakes need to be done, sender can make one big approval that sums up to the desired total stake amount.
 
 ### StakedAccess Contract Interface
 
@@ -32,41 +28,37 @@ following attributes:
 
 #### Public State Variables
 
-* `balances[address][serviceID]`: A mapping that stores all stake balances for each sender address for each different service.
+* `balances[address][serviceOwner][serviceID]`: A mapping that stores all stake balances for each sender address for each different service under a serviceOwner address.
 
-* `releaseDates[address][serviceID]`: A mapping from addresses and bytes32 to a datetime in Unix format, representing the moment at which such stake can be released for a given service.
+* `releaseDates[address][serviceOwner][serviceID]`: A mapping from addresses and bytes32 to a datetime in Unix format, representing the moment at which such stake can be released for a given service.
 
-* `stakePeriods[serviceID]:` The minimum amount of _days_ that each stake should be locked for before allowing token retrieval for a given serviceID. Only the address from which keccak256 hash
-equals the serviceID can set this parameter.
+* `stakePeriods[serviceOwner][serviceID]:` The minimum amount of _days_ that each stake should be locked for before allowing token retrieval for a given service.  Only the _serviceOwner_ address can set this parameter.
 
-* `stakeMinimum[serviceID]:` The minimum amount of _tokens_ (including decimal places) that a sender can stake for a given serviceID. Only the address from which keccak256 hash equals the serviceID can set this parameter.
+* `stakeMinimum[serviceOwner][serviceID]:` The minimum amount of _tokens_ (including decimal places) that a sender can stake for a given service. Only the _serviceOwner_ address can set this parameter.
 
 #### Public Functions
 
-* `stake(amount, serviceID)`: On invoking the `stake` function, an `amount` of tokens
-deducted from the sender address balance and be added to the staking balance for a particular `serviceID`. For the contract to be able to deduct tokens on behalf of the sender, sender **must previously call the approve method of the token contract** with at least the intended `amount`.
+* `stake(amount, serviceOwner, serviceID)`: On invoking the `stake` function, an `amount` of tokens
+is deducted from the sender address balance and added to the staking balance for a particular `serviceID` under a `serviceOwner` address. For the contract to be able to deduct tokens on behalf of the sender, sender **must previously call the approve method of the token contract** with at least the intended `amount`.
 
-* `withdraw(amount, serviceID)`: a stake sender can invoke the `withdraw` function by specifying an
-`amount` and `serviceID`, in which case the `amount` is sent back to the sender's wallet. If a
-minimum period has been set priorly to the stake action, such withdrawal can only be made if present
-moment is beyond what's set on `releaseDates` for that particular stake.
+* `withdraw(serviceOwner, serviceID)`: a stake sender can invoke the `withdraw` function by specifying a `serviceOwner` and `serviceID`, in which case the **total** stake for that service is sent back to the sender's wallet. If a minimum period has been set priorly to the stake action, such withdrawal can only be made if present moment is beyond what's set on `releaseDates` for that particular stake.
 
-* `hasStake(address, serviceID)`: returns whether there's a stake made (greater than zero) by a
-sender on a particular service.
+* `hasStake(address, serviceOwner, serviceID)`: returns whether there's a stake made (greater than zero) by a sender on a particular service.
 
-* `hasStakeAboveMinimum(address, serviceID)`: returns whether there's a stake made (greater than the set minimum) by a sender on a particular service.
+* `hasStakeAboveMinimum(address, serviceID)`: returns whether there's a stake made (greater than the current minimum) by a sender on a particular service.
 
-* `setServiceStakePeriod(amount)` **(only service owner)**: Stake lock-in period can be changed for the serviceID that corresponds to the keccak256 hash of the caller address. This does not
-affect stakes previously made.
+* `setServiceStakePeriod(serviceID, amount)` **(only service owner)**: Stake lock-in period can be changed for any arbitrary `serviceID` under the caller's address. This does not affect stakes previously made.
 
-* `setServiceMinimumStake(amount)` **(only service owner)**: Minimum staking amount can be changed for the serviceID that corresponds to the keccak256 hash of the caller address. This does not
-affect stakes previously made.
+* `setServiceMinimumStake(serviceID, amount)` **(only service owner)**: Minimum staking amount can
+be changed for any arbitrary `serviceID` under the caller's address. This does not affect stakes previously made.
 
 #### Events
 
-* `KEYStaked(address by, uint amount, bytes32 serviceID)`: Emitted when an address has successfully staked an amount of _KEY_ to a particular service.
+* `KEYStaked(uint256 amount, address from, address serviceOwner, bytes32 serviceID)`: Emitted when
+an address has successfully staked an amount of _KEY_ to a particular service.
 
-* `KEYStakeWithdrawn(address to, uint amount, bytes32 serviceID)`: Emitted when a _KEY_ owner has withdrawn tokens previously staked for a certain serviceID.
+* `KEYStakeWithdrawn(uint256 amount, address from, address serviceOwner, bytes32 serviceID)`:
+Emitted when a _KEY_ owner has withdrawn tokens previously staked for a certain serviceID.
 
 ## Development
 
