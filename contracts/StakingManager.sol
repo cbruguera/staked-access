@@ -27,8 +27,8 @@ contract StakingManager {
 
     ERC20 public token;
 
-    event KEYStaked(address from, uint256 amount, bytes32 serviceID);
-    event KEYStakeWithdrawn(address from, uint256 amount, bytes32 serviceID);
+    event KEYStaked(uint256 amount, address from, address serviceOwner, bytes32 serviceID);
+    event KEYStakeWithdrawn(uint256 amount, address from, address serviceOwner, bytes32 serviceID);
 
     constructor(address _token)
         public
@@ -65,7 +65,7 @@ contract StakingManager {
         // token transferFrom requires prior approval on the token contract
         token.safeTransferFrom(msg.sender, address(this), amount);
 
-        emit KEYStaked(msg.sender, amount, serviceID);
+        emit KEYStaked(amount, msg.sender, serviceOwner, serviceID);
     }
 
     /**
@@ -85,7 +85,7 @@ contract StakingManager {
 
         token.safeTransfer(msg.sender, funds);
 
-        emit KEYStakeWithdrawn(msg.sender, funds, serviceID);
+        emit KEYStakeWithdrawn(funds, msg.sender, serviceOwner, serviceID);
         return funds;
     }
 
