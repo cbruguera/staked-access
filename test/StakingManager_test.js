@@ -131,7 +131,7 @@ contract("StakingManager", accounts => {
 
   context("Custom service parameters", () => {
     it("address can set staking period for a serviceID", async () => {
-      await stakingManager.setStakePeriod("serviceHarrb", 5, {
+      await stakingManager.setStakePeriod("serviceHarrb", 432000, {
         from: serviceProvider
       })
       const period = await stakingManager.stakePeriods.call(

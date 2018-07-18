@@ -96,10 +96,10 @@ contract StakingManager {
      *  Service owner can change the minimum staking period to a certain amount of DAYS
      *  Stakes previously made are not affected.
      *  @param serviceID - Service identifier for setting the parameter
-     *  @param period - New period for all future stakes on caller serviceID
+     *  @param period - New period (in seconds) for all future stakes on caller serviceID
      */
     function setStakePeriod(bytes32 serviceID, uint256 period) public {
-        stakePeriods[msg.sender][serviceID] = period.mul(1 days);
+        stakePeriods[msg.sender][serviceID] = period;
         emit StakePeriodSet(msg.sender, serviceID, period);
     }
 
