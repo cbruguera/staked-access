@@ -29,6 +29,8 @@ contract StakingManager {
 
     event KEYStaked(uint256 amount, address from, address serviceOwner, bytes32 serviceID);
     event KEYStakeWithdrawn(uint256 amount, address from, address serviceOwner, bytes32 serviceID);
+    event MinimumStakeSet(address serviceOwner, bytes32 serviceID, uint256 amount);
+    event StakePeriodSet(address serviceOwner, bytes32 serviceID, uint256 period);
 
     constructor(address _token)
         public
@@ -75,7 +77,7 @@ contract StakingManager {
      *  @param serviceID - Service to withdraw stake from
      */
     function withdraw(address serviceOwner, bytes32 serviceID) public returns(uint256) {
-        require(balances[msg.sender][serviceOwner][serviceID] > 0, "There is no stake")
+        require(balances[msg.sender][serviceOwner][serviceID] > 0, "There is no stake");
         require(releaseDates[msg.sender][serviceOwner][serviceID] <= now, "Stake is still locked");
 
         uint256 funds = balances[msg.sender][serviceOwner][serviceID];
@@ -98,6 +100,7 @@ contract StakingManager {
      */
     function setServiceStakePeriod(bytes32 serviceID, uint256 period) public {
         stakePeriods[msg.sender][serviceID] = period.mul(1 days);
+        emit StakePeriodSet(msg.sender, serviceID, period);
     }
 
     /**
@@ -108,6 +111,7 @@ contract StakingManager {
      */
     function setServiceMinimumStake(bytes32 serviceID, uint256 minimum) public {
         stakeMinimum[msg.sender][serviceID] = minimum;
+        emit MinimumStakeSet(msg.sender, serviceID, minimum);
     }
 
     /**
