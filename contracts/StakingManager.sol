@@ -98,7 +98,7 @@ contract StakingManager {
      *  @param serviceID - Service identifier for setting the parameter
      *  @param period - New period for all future stakes on caller serviceID
      */
-    function setServiceStakePeriod(bytes32 serviceID, uint256 period) public {
+    function setStakePeriod(bytes32 serviceID, uint256 period) public {
         stakePeriods[msg.sender][serviceID] = period.mul(1 days);
         emit StakePeriodSet(msg.sender, serviceID, period);
     }
@@ -109,7 +109,7 @@ contract StakingManager {
      *  @param serviceID - Service identifier for setting the parameter
      *  @param minimum - New lower cap for all future stakes on caller serviceID
      */
-    function setServiceMinimumStake(bytes32 serviceID, uint256 minimum) public {
+    function setMinimumStake(bytes32 serviceID, uint256 minimum) public {
         stakeMinimum[msg.sender][serviceID] = minimum;
         emit MinimumStakeSet(msg.sender, serviceID, minimum);
     }

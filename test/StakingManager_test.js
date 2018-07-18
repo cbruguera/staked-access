@@ -131,7 +131,7 @@ contract("StakingManager", accounts => {
 
   context("Custom service parameters", () => {
     it("address can set staking period for a serviceID", async () => {
-      await stakingManager.setServiceStakePeriod("serviceHarrb", 5, {
+      await stakingManager.setStakePeriod("serviceHarrb", 5, {
         from: serviceProvider
       })
       const period = await stakingManager.stakePeriods.call(
@@ -143,7 +143,7 @@ contract("StakingManager", accounts => {
 
     it("address can set staking minimum for a serviceID", async () => {
       const minimum = 1000
-      await stakingManager.setServiceMinimumStake("serviceHarrb", minimum, {
+      await stakingManager.setMinimumStake("serviceHarrb", minimum, {
         from: serviceProvider
       })
       const setMinimum = await stakingManager.stakeMinimum.call(
