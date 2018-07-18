@@ -29,6 +29,8 @@ contract StakingManager {
 
     event KEYStaked(uint256 amount, address from, address serviceOwner, bytes32 serviceID);
     event KEYStakeWithdrawn(uint256 amount, address from, address serviceOwner, bytes32 serviceID);
+    event MinimumStakeSet(address serviceOwner, bytes32 serviceID, uint256 amount);
+    event StakePeriodSet(address serviceOwner, bytes32 serviceID, uint256 period);
 
     constructor(address _token)
         public
@@ -75,6 +77,7 @@ contract StakingManager {
      *  @param serviceID - Service to withdraw stake from
      */
     function withdraw(address serviceOwner, bytes32 serviceID) public returns(uint256) {
+        require(balances[msg.sender][serviceOwner][serviceID] > 0, "There is no stake");
         require(releaseDates[msg.sender][serviceOwner][serviceID] <= now, "Stake is still locked");
 
         uint256 funds = balances[msg.sender][serviceOwner][serviceID];
@@ -93,10 +96,11 @@ contract StakingManager {
      *  Service owner can change the minimum staking period to a certain amount of DAYS
      *  Stakes previously made are not affected.
      *  @param serviceID - Service identifier for setting the parameter
-     *  @param period - New period for all future stakes on caller serviceID
+     *  @param period - New period (in seconds) for all future stakes on caller serviceID
      */
-    function setServiceStakePeriod(bytes32 serviceID, uint256 period) public {
-        stakePeriods[msg.sender][serviceID] = period.mul(1 days);
+    function setStakePeriod(bytes32 serviceID, uint256 period) public {
+        stakePeriods[msg.sender][serviceID] = period;
+        emit StakePeriodSet(msg.sender, serviceID, period);
     }
 
     /**
@@ -105,8 +109,9 @@ contract StakingManager {
      *  @param serviceID - Service identifier for setting the parameter
      *  @param minimum - New lower cap for all future stakes on caller serviceID
      */
-    function setServiceMinimumStake(bytes32 serviceID, uint256 minimum) public {
+    function setMinimumStake(bytes32 serviceID, uint256 minimum) public {
         stakeMinimum[msg.sender][serviceID] = minimum;
+        emit MinimumStakeSet(msg.sender, serviceID, minimum);
     }
 
     /**

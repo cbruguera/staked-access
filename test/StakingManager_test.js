@@ -104,6 +104,18 @@ contract("StakingManager", accounts => {
   })
 
   context("Withdrawal", () => {
+    it("sender cannot withdraw if stake is zero", async () => {
+      await assertThrows(
+        stakingManager.withdraw(
+          zeroAddress,
+          "ServiceWhereNOONEhasAnyStakeEver",
+          {
+            from: sender
+          }
+        )
+      )
+    })
+
     it("sender is able to withdraw her stake", async () => {
       await stakingManager.withdraw(zeroAddress, "ExchangeFoo", {
         from: sender
@@ -119,7 +131,7 @@ contract("StakingManager", accounts => {
 
   context("Custom service parameters", () => {
     it("address can set staking period for a serviceID", async () => {
-      await stakingManager.setServiceStakePeriod("serviceHarrb", 5, {
+      await stakingManager.setStakePeriod("serviceHarrb", 432000, {
         from: serviceProvider
       })
       const period = await stakingManager.stakePeriods.call(
@@ -131,7 +143,7 @@ contract("StakingManager", accounts => {
 
     it("address can set staking minimum for a serviceID", async () => {
       const minimum = 1000
-      await stakingManager.setServiceMinimumStake("serviceHarrb", minimum, {
+      await stakingManager.setMinimumStake("serviceHarrb", minimum, {
         from: serviceProvider
       })
       const setMinimum = await stakingManager.stakeMinimum.call(
