@@ -75,6 +75,7 @@ contract StakingManager {
      *  @param serviceID - Service to withdraw stake from
      */
     function withdraw(address serviceOwner, bytes32 serviceID) public returns(uint256) {
+        require(balances[msg.sender][serviceOwner][serviceID] > 0, "There is no stake")
         require(releaseDates[msg.sender][serviceOwner][serviceID] <= now, "Stake is still locked");
 
         uint256 funds = balances[msg.sender][serviceOwner][serviceID];

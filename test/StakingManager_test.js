@@ -104,6 +104,18 @@ contract("StakingManager", accounts => {
   })
 
   context("Withdrawal", () => {
+    it("sender cannot withdraw if stake is zero", async () => {
+      await assertThrows(
+        stakingManager.withdraw(
+          zeroAddress,
+          "ServiceWhereNOONEhasAnyStakeEver",
+          {
+            from: sender
+          }
+        )
+      )
+    })
+
     it("sender is able to withdraw her stake", async () => {
       await stakingManager.withdraw(zeroAddress, "ExchangeFoo", {
         from: sender
