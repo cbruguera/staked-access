@@ -13,9 +13,9 @@ The `StakingManager` contract provides the following functionality.
 
 2. Staked tokens can only be retrieved by the original sender.
 
-3. Any Ethereum address is able to associate itself with multiple "serviceIDs" through setting up custom parameters such as **minimum stake** and **lock-in period** per serviceID. This is done through the methods `setServiceMinimumStake` and `setServiceStakePeriod` respectively.
+3. Any Ethereum address is able to associate itself with multiple "serviceIDs" through setting up custom parameters such as **minimum stake** and **lock-in period** per serviceID. This is done through the methods `setMinimumStake` and `setStakePeriod` respectively.
 
-3. For the staking functionality to work, sender has to invoke `approve(stakingContractAddress, stakingAmount)` against on the **token contract** first, passing the staking contract address and
+3. For the staking functionality to work, sender has to invoke `approve(stakingContractAddress, stakingAmount)` on the **token contract** first, passing the staking contract address and
 the corresponding staking amount (including all decimal places). This is to allow the staking contract to spend funds (up to the limit set) on behalf of its owner. After token spending approval,
 `StakingManager` method `stake` can be invoked by passing an amount, a _serviceOnwer_ address and a _serviceID_. For "global" services not tied to any particular service owner, the "zero address" can be used as the serviceOwner (i.e. `0x0000000000000000000000000000000000000000`).
 
@@ -32,7 +32,7 @@ following attributes:
 
 * `releaseDates[address][serviceOwner][serviceID]`: A mapping from addresses and bytes32 to a datetime in Unix format, representing the moment at which such stake can be released for a given service.
 
-* `stakePeriods[serviceOwner][serviceID]:` The minimum amount of _days_ that each stake should be locked for before allowing token retrieval for a given service.  Only the _serviceOwner_ address can set this parameter.
+* `stakePeriods[serviceOwner][serviceID]:` The minimum amount of _seconds_ that each stake should be locked for before allowing token retrieval for a given service.  Only the _serviceOwner_ address can set this parameter.
 
 * `stakeMinimum[serviceOwner][serviceID]:` The minimum amount of _tokens_ (including decimal places) that a sender can stake for a given service. Only the _serviceOwner_ address can set this parameter.
 
@@ -47,9 +47,9 @@ is deducted from the sender address balance and added to the staking balance for
 
 * `hasStakeAboveMinimum(address, serviceID)`: returns whether there's a stake made (greater than the current minimum) by a sender on a particular service.
 
-* `setServiceStakePeriod(serviceID, amount)` **(only service owner)**: Stake lock-in period can be changed for any arbitrary `serviceID` under the caller's address. This does not affect stakes previously made.
+* `setStakePeriod(serviceID, amount)` **(only service owner)**: Stake lock-in period can be changed for any arbitrary `serviceID` under the caller's address. This does not affect stakes previously made.
 
-* `setServiceMinimumStake(serviceID, amount)` **(only service owner)**: Minimum staking amount can
+* `setMinimumStake(serviceID, amount)` **(only service owner)**: Minimum staking amount can
 be changed for any arbitrary `serviceID` under the caller's address. This does not affect stakes previously made.
 
 #### Events
@@ -59,6 +59,10 @@ an address has successfully staked an amount of _KEY_ to a particular service.
 
 * `KEYStakeWithdrawn(uint256 amount, address from, address serviceOwner, bytes32 serviceID)`:
 Emitted when a _KEY_ owner has withdrawn tokens previously staked for a certain serviceID.
+
+* `MinimumStakeSet(address serviceOwner, bytes32 serviceID, uint256 amount)`: Emitted when a `serviceOwner` changes the minimum stake paramenter for a given `serviceID`.
+
+* `StakePeriodSet(address serviceOwner, bytes32 serviceID, uint256 period)`: Emitted when a `serviceOwner` changes the stake period paramenter for a given `serviceID`.
 
 ## Development
 

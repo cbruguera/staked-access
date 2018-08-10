@@ -93,7 +93,7 @@ contract StakingManager {
     }
 
     /**
-     *  Service owner can change the minimum staking period to a certain amount of DAYS
+     *  Service owner can change the minimum staking period to a certain amount of SECONDS
      *  Stakes previously made are not affected.
      *  @param serviceID - Service identifier for setting the parameter
      *  @param period - New period (in seconds) for all future stakes on caller serviceID
