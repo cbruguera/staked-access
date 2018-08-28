@@ -32,11 +32,8 @@ contract StakingManager {
     event MinimumStakeSet(address serviceOwner, bytes32 serviceID, uint256 amount);
     event StakePeriodSet(address serviceOwner, bytes32 serviceID, uint256 period);
 
-    constructor(address _token)
-        public
-    {
+    constructor(address _token) public {
         require(_token != address(0), "Invalid token address");
-
         token = ERC20(_token);
     }
 
