@@ -20,11 +20,11 @@ contract CollaborativeDepositVault  is LockedDepositVault{
         bytes32 serviceID);
 
     event WithdrawnFor(
-      address sender,
-      uint256 amount,
-      address beneficiary,
-      address serviceOwner,
-      bytes32 serviceID);
+        address sender,
+        uint256 amount,
+        address beneficiary,
+        address serviceOwner,
+        bytes32 serviceID);
 
     /**
      *  depositFor allows third parties to deposit on behalf of a service beneficiary
