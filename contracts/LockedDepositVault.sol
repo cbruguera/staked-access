@@ -40,7 +40,7 @@ contract LockedDepositVault is DepositVault{
      */
     function withdraw(address serviceOwner, bytes32 serviceID) public returns(uint256) {
         require(releaseDates[msg.sender][serviceOwner][serviceID] <= now,
-            "Deposit is still locked for this serviceID");
+            "Deposit is still locked for this service");
         return super.withdraw(serviceOwner, serviceID);
     }
 }

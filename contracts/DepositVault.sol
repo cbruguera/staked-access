@@ -14,7 +14,7 @@ contract DepositVault {
     SelfKeyToken public token;
 
     mapping(address => mapping(address => mapping(bytes32 => uint256))) public balances;
-    mapping(address => mapping(bytes32 => uint256)) public totalStakeByServiceID;
+    //mapping(address => mapping(bytes32 => uint256)) public totalStakeByService;
 
     event Deposited(uint256 amount, address from, address serviceOwner, bytes32 serviceID);
     event Withdrawn(uint256 amount, address from, address serviceOwner, bytes32 serviceID);
@@ -27,8 +27,8 @@ contract DepositVault {
     /**
      *  Make a deposit for a given amount to certain Service ID.
      *  @param amount - token amount to stake
-     *  @param serviceOwner - Service owner, sets parameters for staking on a serviceID
-     *  @param serviceID - Service ID upon which the stake will be made
+     *  @param serviceOwner - Service owner, sets the deposit parameters for serviceID
+     *  @param serviceID - Service upon which the deposit will be made
      */
     function deposit(uint256 amount, address serviceOwner, bytes32 serviceID) public {
         require(amount > 0,
@@ -39,9 +39,6 @@ contract DepositVault {
             "Sender address has insufficient KEY funds");
 
         balances[msg.sender][serviceOwner][serviceID] += amount;
-        totalStakeByServiceID[serviceOwner][serviceID] += amount;
-
-        // token transferFrom requires prior approval on the token contract
         token.safeTransferFrom(msg.sender, address(this), amount);
         emit Deposited(amount, msg.sender, serviceOwner, serviceID);
     }
@@ -49,7 +46,7 @@ contract DepositVault {
     /**
      *  Withdraws all tokens of a deposit made. Only sender can withdraw.
      *  @param serviceOwner - The address that owns such service
-     *  @param serviceID - Service to withdraw stake from
+     *  @param serviceID - Service to withdraw the deposit from
      */
     function withdraw(address serviceOwner, bytes32 serviceID) public returns(uint256) {
         require(balances[msg.sender][serviceOwner][serviceID] > 0,
@@ -57,8 +54,6 @@ contract DepositVault {
 
         uint256 funds = balances[msg.sender][serviceOwner][serviceID];
         balances[msg.sender][serviceOwner][serviceID] = 0;
-        totalStakeByServiceID[serviceOwner][serviceID] -= funds;
-
         token.safeTransfer(msg.sender, funds);
         emit Withdrawn(funds, msg.sender, serviceOwner, serviceID);
         return funds;
