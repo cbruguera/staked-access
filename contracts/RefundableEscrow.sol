@@ -33,7 +33,7 @@ contract RefundableEscrow is DepositVault{
      */
     function release(address serviceOwner, bytes32 serviceID) public {
         uint256 funds = balances[msg.sender][serviceOwner][serviceID];
-        require(funds > 0);
+        require(funds > 0, "There are no funds deposited by sender to this service");
         token.safeTransfer(serviceOwner, funds);
         emit PaymentReleased(funds, msg.sender, serviceOwner, serviceID);
     }
@@ -45,7 +45,7 @@ contract RefundableEscrow is DepositVault{
      */
     function refund(address depositSender, bytes32 serviceID) public {
         uint256 funds = balances[depositSender][msg.sender][serviceID];
-        require(funds > 0);
+        require(funds > 0, "There are no funds deposited by given address to this service");
         token.safeTransfer(depositSender, funds);
         emit PaymentRefunded(funds, depositSender, msg.sender, serviceID);
     }
