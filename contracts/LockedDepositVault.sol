@@ -3,9 +3,9 @@ pragma solidity ^0.4.23;
 import './DepositVault.sol';
 
 /**
- *  Contract for managing general deposits and staking functionality for SelfKey
+ *  Deposit vault with time-lock functionality. Lock-in period can be set by service owners.
  */
-contract LockedDepositVault is DepositVault{
+contract LockedDepositVault is Pausable, DepositVault{
 
     mapping(address => mapping(address => mapping(bytes32 => uint256))) public releaseDates;
     mapping(address => mapping(bytes32 => uint256)) public lockPeriods;

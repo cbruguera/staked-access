@@ -5,8 +5,7 @@ import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol';
 
 /**
- *  An address with `KEY` staked in the `StakedAccess` has access to a given ICO.
- *  An address can only `retrieve` its `KEY` from the escrow after the allotted expiry time.
+ *  DEPRECATED
  */
 contract StakingManager {
     using SafeERC20 for ERC20;

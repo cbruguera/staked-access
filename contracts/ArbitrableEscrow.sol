@@ -3,7 +3,7 @@ pragma solidity ^0.4.23;
 import './RefundableEscrow.sol';
 
 /**
- *  Contract for managing payment deposits for SelfKey
+ *  Contract for managing arbitrable payment for SelfKey Marketplace
  */
 contract ArbitrableEscrow is RefundableEscrow{
 
@@ -15,7 +15,8 @@ contract ArbitrableEscrow is RefundableEscrow{
         bytes32 serviceID,
         uint256 depositorFees,
         uint256 ownerFees,
-        uint256 arbitrationFees);
+        uint256 arbitrationFees
+    );
 
     // An arbiter address can be assigned to arbiters[depositor][serviceOwner][serviceID]
     mapping(address => mapping(address => mapping(bytes32 => address))) public arbiters;
@@ -42,26 +43,29 @@ contract ArbitrableEscrow is RefundableEscrow{
      *  @param serviceID - Service to which the deposit is made
      *  @param depositorFees - Number of tokens to allocate to depositor
      *  @param ownerFees - Number of tokens to allocate to Owner
-     *  @param arbitrationFees - Number of tokens to allocate to transaction arbiter
      */
     function settleTransaction(
         address depositor,
         address serviceOwner,
         bytes32 serviceID,
-        uint256 depositorFees,
-        uint256 ownerFees,
-        uint256 arbitrationFees) public
+        uint256 depositorAmount,
+        uint256 ownerAmount
+    )
+        public
     {
         uint256 funds = balances[depositor][serviceOwner][serviceID];
         require(funds > 0,
             "There are no funds deposited by given address to this service");
         require(arbiters[depositor][serviceOwner][serviceID] == msg.sender,
-            "Caller address is not set as an arbiter for this deposit");
-        require(funds.add(depositorFees).add(ownerFees).add(arbitrationFees) == funds,
-            "Sum of allocation fees should be equal to deposited funds");
+            "Caller address is not set as an arbiter for this transaction");
+        require(depositorAmount.add(ownerAmount) <= funds,
+            "Total should be less or equal to deposited funds");
 
-        token.safeTransfer(depositor, depositorFees);
-        token.safeTransfer(serviceOwner, ownerFees);
+        token.safeTransfer(depositor, depositorAmount);
+        token.safeTransfer(serviceOwner, ownerAmount);
+
+        // Remaining tokens are considered arbitration fees
+        uint256 arbitationFees = funds.sub(depositorAmount.add(ownerAmount));
         token.safeTransfer(msg.sender, arbitrationFees);
 
         emit TransactionSettled(
@@ -69,8 +73,9 @@ contract ArbitrableEscrow is RefundableEscrow{
             depositor,
             serviceOwner,
             serviceID,
-            depositorFees,
-            ownerFees,
-            arbitrationFees);
+            depositorAmount,
+            ownerAmount,
+            arbitrationFees
+        );
     }
 }

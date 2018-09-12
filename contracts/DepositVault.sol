@@ -5,7 +5,7 @@ import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol';
 
 /**
- *  Contract for managing general deposits and staking functionality for SelfKey
+ *  Base Contract for managing general deposits and staking functionality for SelfKey
  */
 contract DepositVault {
     using SafeMath for uint256;
@@ -38,7 +38,8 @@ contract DepositVault {
         require(token.balanceOf(msg.sender) >= amount,
             "Sender address has insufficient KEY funds");
 
-        balances[msg.sender][serviceOwner][serviceID] += amount;
+        balances[msg.sender][serviceOwner][serviceID] =
+            balances[msg.sender][serviceOwner][serviceID].add(amount);
         token.safeTransferFrom(msg.sender, address(this), amount);
         emit Deposited(amount, msg.sender, serviceOwner, serviceID);
     }
