@@ -13,8 +13,8 @@ contract ArbitrableEscrow is RefundableEscrow{
         address depositor,
         address serviceOwner,
         bytes32 serviceID,
-        uint256 depositorFees,
-        uint256 ownerFees,
+        uint256 depositorAmount,
+        uint256 ownerAmount,
         uint256 arbitrationFees
     );
 
@@ -41,8 +41,8 @@ contract ArbitrableEscrow is RefundableEscrow{
      *  @param depositor - The address of the deposit sender
      *  @param serviceOwner - Manager of the provided service
      *  @param serviceID - Service to which the deposit is made
-     *  @param depositorFees - Number of tokens to allocate to depositor
-     *  @param ownerFees - Number of tokens to allocate to Owner
+     *  @param depositorAmount - Number of tokens to allocate to depositor
+     *  @param ownerAmount - Number of tokens to allocate to Owner
      */
     function settleTransaction(
         address depositor,
@@ -65,7 +65,7 @@ contract ArbitrableEscrow is RefundableEscrow{
         token.safeTransfer(serviceOwner, ownerAmount);
 
         // Remaining tokens are considered arbitration fees
-        uint256 arbitationFees = funds.sub(depositorAmount.add(ownerAmount));
+        uint256 arbitrationFees = funds.sub(depositorAmount.add(ownerAmount));
         token.safeTransfer(msg.sender, arbitrationFees);
 
         emit TransactionSettled(

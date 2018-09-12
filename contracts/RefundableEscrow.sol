@@ -1,27 +1,35 @@
 pragma solidity ^0.4.23;
 
 import './DepositVault.sol';
+import 'openzeppelin-solidity/contracts/lifecycle/Pausable.sol';
 
 /**
  *  Contract for managing deferred payment for SelfKey Marketplace
  */
-contract RefundableEscrow is DepositVault{
+contract RefundableEscrow is Pausable, DepositVault{
 
     event PaymentReleased(uint256 amount, address sender, address receiver, bytes32 serviceID);
     event PaymentMade(uint256 amount, address sender, address receiver, bytes32 serviceID);
     event PaymentRefunded(uint256 amount, address sender, address serviceOwner, bytes32 serviceID);
 
     /**
-     *  Overwrite parent method to disable withdrawals.
+     *  Withdrawals are only available if contract is paused.
      */
-    function withdraw(address sender, bytes32 serviceID) public returns(uint256) {
-        revert("Method not supported");
+    function withdraw(address sender, bytes32 serviceID)
+        whenPaused
+        public
+        returns(uint256)
+    {
+        super.withdraw(sender, serviceID);
     }
 
     /**
      *  Overwrite parent method to include emission of PaymentMade event.
      */
-    function deposit(uint256 amount, address serviceOwner, bytes32 serviceID) public {
+    function deposit(uint256 amount, address serviceOwner, bytes32 serviceID)
+        whenNotPaused
+        public
+    {
         emit PaymentMade(amount, msg.sender, serviceOwner, serviceID);
         super.deposit(amount, serviceOwner, serviceID);
     }
