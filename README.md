@@ -63,7 +63,7 @@ activity in case there's a migration going on and the contract is becoming "depr
 
 * `lockPeriods[serviceOwner][serviceID]`: stores all the set lock periods for specific services by their corresponding service owner. If no timelock has been set for the given service, it'll have the default value 0.
 
-###### Methods
+##### Methods
 
 * `setLockPeriod(serviceID, period)`: At any point, any Ethereum address can set a lock period (in seconds) for a `serviceID` that holds or will hold deposits under the caller address as its _service owner_.
 
@@ -94,7 +94,7 @@ overwritten for adding and checking timelock states on deposits respectively. Ti
 This contract is _pausable_, meaning that the contract owner can at some point suspend its
 activity in case there's a migration going on and the contract is becoming "deprecated". When the contract is paused, no new deposits can be made, and withdrawals are enabled.
 
-###### Methods
+##### Methods
 
 * `withdraw(serviceOwner, serviceID)`: In this version, withdrawals are disabled by default, being available only if the contract is _paused_.
 
