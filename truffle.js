@@ -16,7 +16,7 @@ const DEFAULT = {
   gas: 4600000
 }
 
-const walletPath = "./wallet.json"
+const walletPath = "./local/wallet.json"
 
 const providerUrlRopsten = "https://ropsten.infura.io/SYGRk61NUc3yN4NNRs60"
 const providerUrlMainnet = "https://mainnet.infura.io/SYGRk61NUc3yN4NNRs60"
