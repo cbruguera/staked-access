@@ -7,9 +7,8 @@ import 'openzeppelin-solidity/contracts/lifecycle/Pausable.sol';
  *  Contract for managing deferred payment for SelfKey Marketplace
  */
 contract RefundableEscrow is Pausable, DepositVault{
-
-    event PaymentReleased(uint256 amount, address sender, address serviceOwner, bytes32 serviceID);
     event PaymentMade(uint256 amount, address sender, address serviceOwner, bytes32 serviceID);
+    event PaymentReleased(uint256 amount, address sender, address serviceOwner, bytes32 serviceID);
     event PaymentRefunded(uint256 amount, address sender, address serviceOwner, bytes32 serviceID);
 
     constructor(address _token) DepositVault(_token) public { }
@@ -43,7 +42,9 @@ contract RefundableEscrow is Pausable, DepositVault{
      *  @param serviceOwner - The address of the service owner
      *  @param serviceID - Service to withdraw the deposit from
      */
-    function release(address serviceOwner, bytes32 serviceID) public {
+    function release(address serviceOwner, bytes32 serviceID)
+        public
+    {
         uint256 funds = balances[msg.sender][serviceOwner][serviceID];
         require(funds > 0, "There are no funds deposited by sender to this service");
         balances[msg.sender][serviceOwner][serviceID] = 0;
@@ -56,7 +57,9 @@ contract RefundableEscrow is Pausable, DepositVault{
      *  @param depositor - The address of the deposit sender
      *  @param serviceID - Service to withdraw the deposit from
      */
-    function refund(address depositor, bytes32 serviceID) public {
+    function refund(address depositor, bytes32 serviceID)
+        public
+    {
         uint256 funds = balances[depositor][msg.sender][serviceID];
         require(funds > 0, "There are no funds deposited by given address to this service");
         balances[depositor][msg.sender][serviceID] = 0;
