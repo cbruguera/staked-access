@@ -13,6 +13,8 @@ contract LockedDepositVault is Pausable, DepositVault{
 
     event LockPeriodSet(address sender, bytes32 serviceID, uint256 period);
 
+    constructor(address _token) DepositVault(_token) public { } 
+
     /**
      *  Service owner can change the lock period to a certain amount of SECONDS
      *  Deposits previously made are not affected.

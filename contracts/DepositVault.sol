@@ -16,8 +16,8 @@ contract DepositVault {
     mapping(address => mapping(address => mapping(bytes32 => uint256))) public balances;
     //mapping(address => mapping(bytes32 => uint256)) public totalStakeByService;
 
-    event Deposited(uint256 amount, address from, address serviceOwner, bytes32 serviceID);
-    event Withdrawn(uint256 amount, address from, address serviceOwner, bytes32 serviceID);
+    event KEYDeposited(uint256 amount, address from, address serviceOwner, bytes32 serviceID);
+    event KEYWithdrawn(uint256 amount, address from, address serviceOwner, bytes32 serviceID);
 
     constructor(address _token) public {
         require(_token != address(0), "Invalid token address");
@@ -41,7 +41,7 @@ contract DepositVault {
         balances[msg.sender][serviceOwner][serviceID] =
             balances[msg.sender][serviceOwner][serviceID].add(amount);
         token.safeTransferFrom(msg.sender, address(this), amount);
-        emit Deposited(amount, msg.sender, serviceOwner, serviceID);
+        emit KEYDeposited(amount, msg.sender, serviceOwner, serviceID);
     }
 
     /**
@@ -56,7 +56,7 @@ contract DepositVault {
         uint256 funds = balances[msg.sender][serviceOwner][serviceID];
         balances[msg.sender][serviceOwner][serviceID] = 0;
         token.safeTransfer(msg.sender, funds);
-        emit Withdrawn(funds, msg.sender, serviceOwner, serviceID);
+        emit KEYWithdrawn(funds, msg.sender, serviceOwner, serviceID);
         return funds;
     }
 }
