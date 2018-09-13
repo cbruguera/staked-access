@@ -1,68 +1,116 @@
 # selfkey-staking
 
-Contracts that provide access to a marketplace based on the staking of KEY by participants
+This project comprehends a set of smart contracts that allow users to make KEY deposits for getting
+access to services and features. The base contract `DepositVault` serves as the base for more
+complex functionality to be implemented, such as staking and escrow payments.
 
 * `develop` — [![CircleCI](https://circleci.com/gh/SelfKeyFoundation/staked-access/tree/develop.svg?style=svg)](https://circleci.com/gh/SelfKeyFoundation/staked-access/tree/develop) [![codecov](https://codecov.io/gh/SelfKeyFoundation/staked-access/branch/develop/graph/badge.svg)](https://codecov.io/gh/SelfKeyFoundation/staked-access)
 * `master` — [![CircleCI](https://circleci.com/gh/SelfKeyFoundation/staked-access/tree/master.svg?style=svg)](https://circleci.com/gh/SelfKeyFoundation/staked-access/tree/master) [![codecov](https://codecov.io/gh/SelfKeyFoundation/staked-access/branch/master/graph/badge.svg)](https://codecov.io/gh/SelfKeyFoundation/staked-access)
 
 ## Overview
 
-The `StakingManager` contract provides the following functionality.
+The `DepositVault` contract implements basic "deposit" functionality. The contract works as a "deposit registry", keeping track of different deposits made by different addresses and linked to different services provided by different owners. The following is a list of features:
 
-1. Addresses are able to "stake" _KEY_ linked to a given _Service Owner_ address and a _serviceID_ 32-byte string. This allows to reserve different amount of tokens simultaneously in relation to different services .
+1. Addresses are able to "deposit" _KEY_ associated to a given _Service Owner_ address and a _serviceID_ 32-byte string.
 
-2. Staked tokens can only be retrieved by the original sender.
+2. Deposited tokens can only be retrieved by the original sender anytime.
 
-3. Any Ethereum address is able to associate itself with multiple "serviceIDs" through setting up custom parameters such as **minimum stake** and **lock-in period** per serviceID. This is done through the methods `setMinimumStake` and `setStakePeriod` respectively.
+3. For the `deposit` method to work, the sender has to first invoke `approve(depositVaultAddress, maxAmount)` on the **token contract** , passing the deposit vault contract address and
+the corresponding deposit amount (including all decimal places). This is to allow the deposit contract to spend funds (up to the limit set) on behalf of its owner. After approval,
+`DepositVault` method `deposit` can be invoked by specifying an `amount` (with all decimal places),
+a _serviceOwner_ address and a _serviceID_. For "global" services not tied to any particular provider, the "zero address" can be used as the `serviceOwner` (i.e. `0x0000000000000000000000000000000000000000`).
 
-3. For the staking functionality to work, sender has to invoke `approve(stakingContractAddress, stakingAmount)` on the **token contract** first, passing the staking contract address and
-the corresponding staking amount (including all decimal places). This is to allow the staking contract to spend funds (up to the limit set) on behalf of its owner. After token spending approval,
-`StakingManager` method `stake` can be invoked by passing an amount, a _serviceOnwer_ address and a _serviceID_. For "global" services not tied to any particular service owner, the "zero address" can be used as the serviceOwner (i.e. `0x0000000000000000000000000000000000000000`).
+If multiple deposits need to be done, sender can make one big approval that sums up to the desired total deposit amount. Thus the users don't need to spend extra gas by having to approve each time.
 
-If multiple stakes need to be done, sender can make one big approval that sums up to the desired total stake amount.
+### DepositVault base contract
 
-### StakedAccess Contract Interface
+Core deposit functionality is implemented by the `DepositVault` contract, which features a global array of balances:
 
-All staking functionality is implemented by the `StakingManager` contract, which includes the
-following attributes:
+* `balances[depositor][serviceOwner][serviceID]`: this mapping stores all deposit balances for each depositor address for each different service owner under a specific serviceID.
 
-#### Public State Variables
+#### Methods
 
-* `balances[address][serviceOwner][serviceID]`: A mapping that stores all stake balances for each sender address for each different service under a serviceOwner address.
+* `deposit(amount, serviceOwner, serviceID)`: On invoking this function, an `amount` of tokens
+is deducted from the sender address balance and added to the deposit balance for a particular `serviceID` under a `serviceOwner` address. For the contract to be able to deduct tokens on behalf
+of the sender, sender **must previously call the approve method on the token contract** with _at least_ the `amount` intended for deposit. Successful execution triggers the event `KEYDeposited`.
 
-* `releaseDates[address][serviceOwner][serviceID]`: A mapping from addresses and bytes32 to a datetime in Unix format, representing the moment at which such stake can be released for a given service.
-
-* `stakePeriods[serviceOwner][serviceID]:` The minimum amount of _seconds_ that each stake should be locked for before allowing token retrieval for a given service.  Only the _serviceOwner_ address can set this parameter.
-
-* `stakeMinimum[serviceOwner][serviceID]:` The minimum amount of _tokens_ (including decimal places) that a sender can stake for a given service. Only the _serviceOwner_ address can set this parameter.
-
-#### Public Functions
-
-* `stake(amount, serviceOwner, serviceID)`: On invoking the `stake` function, an `amount` of tokens
-is deducted from the sender address balance and added to the staking balance for a particular `serviceID` under a `serviceOwner` address. For the contract to be able to deduct tokens on behalf of the sender, sender **must previously call the approve method of the token contract** with at least the intended `amount`.
-
-* `withdraw(serviceOwner, serviceID)`: a stake sender can invoke the `withdraw` function by specifying a `serviceOwner` and `serviceID`, in which case the **total** stake for that service is sent back to the sender's wallet. If a minimum period has been set priorly to the stake action, such withdrawal can only be made if present moment is beyond what's set on `releaseDates` for that particular stake.
-
-* `hasStake(address, serviceOwner, serviceID)`: returns whether there's a stake made (greater than zero) by a sender on a particular service.
-
-* `hasStakeAboveMinimum(address, serviceID)`: returns whether there's a stake made (greater than the current minimum) by a sender on a particular service.
-
-* `setStakePeriod(serviceID, amount)` **(only service owner)**: Stake lock-in period can be changed for any arbitrary `serviceID` under the caller's address. This does not affect stakes previously made.
-
-* `setMinimumStake(serviceID, amount)` **(only service owner)**: Minimum staking amount can
-be changed for any arbitrary `serviceID` under the caller's address. This does not affect stakes previously made.
+* `withdraw(serviceOwner, serviceID)`: a deposit sender can invoke the `withdraw` function anytime
+by specifying a `serviceOwner` and `serviceID`, in which case the **total** deposit for that
+service is sent back to the depositor address.  Successful execution of this method triggers the event `KEYWithdrawn`.
 
 #### Events
 
-* `KEYStaked(uint256 amount, address from, address serviceOwner, bytes32 serviceID)`: Emitted when
-an address has successfully staked an amount of _KEY_ to a particular service.
+* `KEYDeposited(amount, from, serviceOwner, serviceID)`: Emitted
+when an address has successfully deposited an amount of _KEY_ to a particular service.
 
-* `KEYStakeWithdrawn(uint256 amount, address from, address serviceOwner, bytes32 serviceID)`:
-Emitted when a _KEY_ owner has withdrawn tokens previously staked for a certain serviceID.
+* `KEYWithdrawn(amount, from, serviceOwner, serviceID)`:
+Emitted when a depositor has withdrawn tokens previously deposited for a certain service.
 
-* `MinimumStakeSet(address serviceOwner, bytes32 serviceID, uint256 amount)`: Emitted when a `serviceOwner` changes the minimum stake paramenter for a given `serviceID`.
+### Specialized DepositVault implementations
 
-* `StakePeriodSet(address serviceOwner, bytes32 serviceID, uint256 period)`: Emitted when a `serviceOwner` changes the stake period paramenter for a given `serviceID`.
+As previously mentioned, `DepositVault` serves as the most simple case of deposit registry functionality, from which the following "specialized" implementations derive, having the same basic  capabilites plus some additional features:
+
+#### LockedDepositVault
+
+Implements an optional "timelock" on deposits. For this end, the service owner can set a "lock period" upon any serviceID. Any deposit made by an address on such serviceID will reset the counter for the period set on that deposit. Deposit sender cannot withdraw before the period is fulfilled.
+
+This contract is _pausable_, meaning that the contract owner can at some point suspend its
+activity in case there's a migration going on and the contract is becoming "deprecated". When the contract is paused, no new deposits can be made, and withdrawals are enabled regardless of their timelock status.
+
+##### Attributes
+
+* `releaseDates[depositor][serviceOwner][serviceID]`: keeps track of the release dates for all deposits, stored as a datetime in Unix format. This value is set at deposit time, if there's a lock period that corresponds to the specific service. If no timelock has been set for the corresponding service, it'll have the default value 0.
+
+* `lockPeriods[serviceOwner][serviceID]`: stores all the set lock periods for specific services by their corresponding service owner. If no timelock has been set for the given service, it'll have the default value 0.
+
+###### Methods
+
+* `setLockPeriod(serviceID, period)`: At any point, any Ethereum address can set a lock period (in seconds) for a `serviceID` that holds or will hold deposits under the caller address as its _service owner_.
+
+`deposit` and `withdraw` methods work as implemented on the `DepositVault` contract, but have been
+overwritten for adding and checking timelock states on deposits respectively. Timelock check on withdrawal is overriden if the contract is _paused_.
+
+##### Events
+
+* `LockPeriodSet(serviceOwner, serviceID, period)`: triggered when a lock `period` is set to a
+`serviceID` by a `serviceOwner`.
+
+#### RefundableDepositVault
+
+`RefundableDepositVault` is a type of `LockedDepositVault`, with the addition of a `refund` method that a service owner can invoke anytime to force a refund of tokens to the original depositor, regardless of its timelock status.
+
+##### Methods
+
+* `refund(depositor, serviceID)`: refunds deposited token to their original sender. Successful execution triggers a `PaymentRefunded` event.
+
+##### Events
+
+* `PaymentRefunded(amount, depositor, serviceOwner, serviceID)`
+
+#### RefundableEscrow
+
+`RefundableEscrow` is a slightly different type of deposit contract, in that it's made to handle "deferred payments", meaning that the tokens can be _released_ to the service owner when the depositor considers the transaction conditions have been met.
+
+This contract is _pausable_, meaning that the contract owner can at some point suspend its
+activity in case there's a migration going on and the contract is becoming "deprecated". When the contract is paused, no new deposits can be made, and withdrawals are enabled.
+
+###### Methods
+
+* `withdraw(serviceOwner, serviceID)`: In this version, withdrawals are disabled by default, being available only if the contract is _paused_.
+
+* `deposit(amount, serviceOwner, serviceID)`: works exactly as in `DepositVault`, with the
+difference that `0x000..` cannot be used as a service owner address.
+
+* `release(serviceOwner, serviceID)`: A depositor can release the deposited funds on a `serviceID` to be sent to the corresponding `serviceOwner`.
+
+* `refund(depositor, serviceID)`: A service owner can "roll-back" the payment by refunding the
+tokens to the depositor.
+
+##### Events
+
+* `PaymentMade(amount, sender, serviceOwner, serviceID)`
+* `PaymentReleased(amount, sender, serviceOwner, serviceID)`
+* `PaymentRefunded(amount, sender, serviceOwner, serviceID)`
 
 ## Development
 

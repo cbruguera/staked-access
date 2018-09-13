@@ -30,7 +30,9 @@ contract DepositVault {
      *  @param serviceOwner - Service owner, sets the deposit parameters for serviceID
      *  @param serviceID - Service upon which the deposit will be made
      */
-    function deposit(uint256 amount, address serviceOwner, bytes32 serviceID) public {
+    function deposit(uint256 amount, address serviceOwner, bytes32 serviceID)
+        public
+    {
         require(amount > 0,
             "Deposit amount must be greater than zero");
         require(token.allowance(msg.sender, address(this)) >= amount,
@@ -49,7 +51,10 @@ contract DepositVault {
      *  @param serviceOwner - The address that owns such service
      *  @param serviceID - Service to withdraw the deposit from
      */
-    function withdraw(address serviceOwner, bytes32 serviceID) public returns(uint256) {
+    function withdraw(address serviceOwner, bytes32 serviceID)
+        public
+        returns(uint256)
+    {
         require(balances[msg.sender][serviceOwner][serviceID] > 0,
             "There are no tokens deposited by transaction sender for this service");
 
