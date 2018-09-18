@@ -1,12 +1,11 @@
 pragma solidity ^0.4.23;
 
 import './DepositVault.sol';
-import 'openzeppelin-solidity/contracts/lifecycle/Pausable.sol';
 
 /**
  *  Contract for managing deferred payment for SelfKey Marketplace
  */
-contract RefundableEscrow is Pausable, DepositVault{
+contract RefundableEscrow is DepositVault{
     event PaymentMade(uint256 amount, address sender, address serviceOwner, bytes32 serviceID);
     event PaymentReleased(uint256 amount, address sender, address serviceOwner, bytes32 serviceID);
     event PaymentRefunded(uint256 amount, address sender, address serviceOwner, bytes32 serviceID);

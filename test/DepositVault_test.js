@@ -109,5 +109,19 @@ contract("DepositVault", accounts => {
       )
       assert.equal(Number(depositBalance), 0)
     })
+
+    it("can be paused and upgraded", async () => {
+      await depositVault.pauseAndUpgrade(999999)
+      const paused = await depositVault.paused.call()
+      const newContract = await depositVault.newContract.call()
+      assert.equal(paused, true)
+      assert.equal(Number(newContract), 999999)
+    })
+
+    it("owner can set a new contract address", async () => {
+      await depositVault.setNewContract(
+        "0xc59a20513e3ea4c5872700075a525734c1b4418c"
+      )
+    })
   })
 })

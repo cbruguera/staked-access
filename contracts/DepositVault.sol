@@ -1,23 +1,24 @@
 pragma solidity ^0.4.23;
 
 import './SelfKeyToken.sol';
+import './Upgradable.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol';
 
 /**
  *  Base Contract for managing general deposits and staking functionality for SelfKey
  */
-contract DepositVault {
+contract DepositVault is Upgradable {
     using SafeMath for uint256;
     using SafeERC20 for SelfKeyToken;
 
     SelfKeyToken public token;
 
     mapping(address => mapping(address => mapping(bytes32 => uint256))) public balances;
-    //mapping(address => mapping(bytes32 => uint256)) public totalStakeByService;
 
     event KEYDeposited(uint256 amount, address from, address serviceOwner, bytes32 serviceID);
     event KEYWithdrawn(uint256 amount, address from, address serviceOwner, bytes32 serviceID);
+    event NewContract(address _newContract);
 
     constructor(address _token) public {
         require(_token != address(0), "Invalid token address");
@@ -31,6 +32,7 @@ contract DepositVault {
      *  @param serviceID - Service upon which the deposit will be made
      */
     function deposit(uint256 amount, address serviceOwner, bytes32 serviceID)
+        whenNotPaused
         public
     {
         require(amount > 0,
