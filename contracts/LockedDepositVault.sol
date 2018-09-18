@@ -1,12 +1,11 @@
 pragma solidity ^0.4.23;
 
 import './DepositVault.sol';
-import 'openzeppelin-solidity/contracts/lifecycle/Pausable.sol';
 
 /**
  *  Deposit vault with time-lock functionality. Lock-in period can be set by service owners.
  */
-contract LockedDepositVault is Pausable, DepositVault{
+contract LockedDepositVault is DepositVault{
     mapping(address => mapping(address => mapping(bytes32 => uint256))) public releaseDates;
     mapping(address => mapping(bytes32 => uint256)) public lockPeriods;
 
