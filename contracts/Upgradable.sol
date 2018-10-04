@@ -12,18 +12,6 @@ contract Upgradable is Pausable {
     event NewContract(address _newContract);
 
     /**
-     *  Sets new contract address for migration purposes.
-     *  @param _newContract - Reference to a more recently deployed contract.
-     */
-    function setNewContract(address _newContract)
-        onlyOwner
-        public
-    {
-        newContract = _newContract;
-        emit NewContract(_newContract);
-    }
-
-    /**
      * Pauses the contract while allowing a newContract address to be defined.
      * @param _newContract - Reference to a more recently deployed contract.
      */
@@ -35,5 +23,15 @@ contract Upgradable is Pausable {
         newContract = _newContract;
         emit NewContract(_newContract);
         super.pause();
+    }
+
+    /**
+     * Overrides pause method to disallow in case newContract is set.
+     * Cannot unpause a deprecated contract
+     */
+    function unpause() onlyOwner whenPaused public {
+        // cannot unpause if newContract is set
+        require(newContract == address(0));
+        super.unpause();
     }
 }
