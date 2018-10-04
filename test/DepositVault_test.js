@@ -17,7 +17,7 @@ contract("DepositVault", accounts => {
 
   before(async () => {
     // instantiation fails with invalid token address
-    assertThrows(DepositVault.new("0"))
+    await assertThrows(DepositVault.new("0"))
 
     // deploy a mock token contract and instantiate staking manager
     token = await MockKey.new()
@@ -36,24 +36,24 @@ contract("DepositVault", accounts => {
   })
 
   context("Deposits", () => {
-    it("sender that has not approved can't deposit KEY", () => {
-      assertThrows(
+    it("sender that has not approved can't deposit KEY", async () => {
+      await assertThrows(
         depositVault.deposit(1000, zeroAddress, "ExchangeFoo", {
           from: sender2
         })
       )
     })
 
-    it("sender without funds can't deposit KEY", () => {
-      assertThrows(
+    it("sender without funds can't deposit KEY", async () => {
+      await assertThrows(
         depositVault.deposit(2000, zeroAddress, "ExchangeFoo", {
           from: sender3
         })
       )
     })
 
-    it("sender cannot attempt to deposit zero KEY", () => {
-      assertThrows(
+    it("sender cannot attempt to deposit zero KEY", async () => {
+      await assertThrows(
         depositVault.deposit(0, zeroAddress, "ExchangeFoo", { from: sender })
       )
     })
@@ -110,6 +110,16 @@ contract("DepositVault", accounts => {
       assert.equal(Number(depositBalance), 0)
     })
 
+    it("can be paused and unpaused", async () => {
+      await depositVault.pause()
+      let paused = await depositVault.paused.call()
+      assert.isTrue(paused, true)
+
+      await depositVault.unpause()
+      paused = await depositVault.paused.call()
+      assert.isFalse(paused, false)
+    })
+
     it("can be paused and upgraded", async () => {
       await depositVault.pauseAndUpgrade(999999)
       const paused = await depositVault.paused.call()
@@ -118,10 +128,8 @@ contract("DepositVault", accounts => {
       assert.equal(Number(newContract), 999999)
     })
 
-    it("owner can set a new contract address", async () => {
-      await depositVault.setNewContract(
-        "0xc59a20513e3ea4c5872700075a525734c1b4418c"
-      )
+    it("cannot be unpaused if newContract is set", async () => {
+      await assertThrows(depositVault.unpause())
     })
   })
 })
