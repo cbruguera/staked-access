@@ -24,18 +24,67 @@ contract("RefundableDepositVault", accounts => {
     assert.notEqual(depositVault, undefined)
 
     // initialize senders' funds
-    await token.freeMoney(sender, 4000)
-    await token.freeMoney(sender2, 1000)
-    await token.freeMoney(sender3, 5000)
+    await token.freeMoney(sender, 10000)
+    await token.freeMoney(sender2, 10000)
+    await token.freeMoney(sender3, 10000)
 
     // approve deposit contract to spend on behalf of senders
-    await token.approve(depositVault.address, 1000, { from: sender })
-    await token.approve(depositVault.address, 1000, { from: sender2 })
-    await token.approve(depositVault.address, 5000, { from: sender3 })
+    await token.approve(depositVault.address, 999999000000000000000000, {
+      from: sender
+    })
+    await token.approve(depositVault.address, 999999000000000000000000, {
+      from: sender2
+    })
+    await token.approve(depositVault.address, 999999000000000000000000, {
+      from: sender3
+    })
+  })
+
+  context("Mass refund", () => {
+    it("Service owner can refund all depositors for a given serviceID", async () => {
+      await depositVault.deposit(1000, serviceProvider, "MarketBorl", {
+        from: sender
+      })
+      await depositVault.deposit(1000, serviceProvider, "MarketBorl", {
+        from: sender2
+      })
+      await depositVault.deposit(1000, serviceProvider, "MarketBorl", {
+        from: sender3
+      })
+      let balance = await token.balanceOf.call(depositVault.address)
+      let count = await depositVault.depositorCount.call(
+        serviceProvider,
+        "MarketBorl"
+      )
+      assert.equal(Number(balance), 3000)
+      assert.equal(Number(count), 3)
+
+      // increasing a depositor stake does not modify the depositor list
+      await depositVault.deposit(1000, serviceProvider, "MarketBorl", {
+        from: sender3
+      })
+      assert.equal(Number(count), 3)
+      const index = await depositVault.indexes.call(
+        serviceProvider,
+        "MarketBorl",
+        sender3
+      )
+      assert.equal(Number(index), 2)
+
+      // refund to all depositors at once
+      await depositVault.refundAll("MarketBorl", { from: serviceProvider })
+      balance = await token.balanceOf.call(depositVault.address)
+      count = await depositVault.depositorCount.call(
+        serviceProvider,
+        "MarketBorl"
+      )
+      assert.equal(Number(balance), 0)
+      assert.equal(Number(count), 0)
+    })
   })
 
   context("Deposit timelock with refund", () => {
-    it("cannot refund to an address that has no deposit for serviceID", async () => {
+    it("cannot refund to an address that has no deposit", async () => {
       await assertThrows(
         depositVault.refund(sender, "serviceNull", { from: serviceProvider })
       )
@@ -48,7 +97,6 @@ contract("RefundableDepositVault", accounts => {
       })
 
       // Make a deposit
-      await token.approve(depositVault.address, 1000, { from: sender })
       await depositVault.deposit(1000, serviceProvider, "serviceHarrb", {
         from: sender
       })
