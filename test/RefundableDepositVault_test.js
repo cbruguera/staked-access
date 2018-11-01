@@ -6,7 +6,14 @@ const MockKey = artifacts.require("../test/mock/MockKey.sol")
 const RefundableDepositVault = artifacts.require("./RefundableDepositVault.sol")
 
 contract("RefundableDepositVault", accounts => {
-  const [owner, sender, sender2, sender3, serviceProvider] = accounts.slice(0)
+  const [
+    owner,
+    sender,
+    sender2,
+    sender3,
+    sender4,
+    serviceProvider
+  ] = accounts.slice(0)
 
   const now = new Date().getTime() / 1000
 
@@ -27,6 +34,7 @@ contract("RefundableDepositVault", accounts => {
     await token.freeMoney(sender, 10000)
     await token.freeMoney(sender2, 10000)
     await token.freeMoney(sender3, 10000)
+    await token.freeMoney(sender4, 10000)
 
     // approve deposit contract to spend on behalf of senders
     await token.approve(depositVault.address, 999999000000000000000000, {
@@ -37,6 +45,9 @@ contract("RefundableDepositVault", accounts => {
     })
     await token.approve(depositVault.address, 999999000000000000000000, {
       from: sender3
+    })
+    await token.approve(depositVault.address, 999999000000000000000000, {
+      from: sender4
     })
   })
 
@@ -51,19 +62,22 @@ contract("RefundableDepositVault", accounts => {
       await depositVault.deposit(1000, serviceProvider, "MarketBorl", {
         from: sender3
       })
+      await depositVault.deposit(1000, serviceProvider, "MarketBorl", {
+        from: sender4
+      })
       let balance = await token.balanceOf.call(depositVault.address)
       let count = await depositVault.depositorCount.call(
         serviceProvider,
         "MarketBorl"
       )
-      assert.equal(Number(balance), 3000)
-      assert.equal(Number(count), 3)
+      assert.equal(Number(balance), 4000)
+      assert.equal(Number(count), 4)
 
       // increasing a depositor stake does not modify the depositor list
       await depositVault.deposit(1000, serviceProvider, "MarketBorl", {
         from: sender3
       })
-      assert.equal(Number(count), 3)
+      assert.equal(Number(count), 4)
       const index = await depositVault.indexes.call(
         serviceProvider,
         "MarketBorl",
@@ -71,8 +85,15 @@ contract("RefundableDepositVault", accounts => {
       )
       assert.equal(Number(index), 2)
 
+      await depositVault.refundAll("MarketBorl", 2, { from: serviceProvider })
+      count = await depositVault.depositorCount.call(
+        serviceProvider,
+        "MarketBorl"
+      )
+      assert.equal(Number(count), 2)
+
       // refund to all depositors at once
-      await depositVault.refundAll("MarketBorl", { from: serviceProvider })
+      await depositVault.refundAll("MarketBorl", 0, { from: serviceProvider })
       balance = await token.balanceOf.call(depositVault.address)
       count = await depositVault.depositorCount.call(
         serviceProvider,

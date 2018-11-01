@@ -97,15 +97,21 @@ contract RefundableDepositVault is LockedDepositVault {
      *  from the array and replaced by the last on each step.
      *  @param serviceID - serviceID to refund all depositors from
      */
-    function refundAll(bytes32 serviceID)
+    function refundAll(bytes32 serviceID, uint256 cap)
         public
         returns(uint256)
     {
-        uint256 size = depositorCount[msg.sender][serviceID];
-        for (uint256 i = 0; i < size; i++) {
+        uint256 pageSize;
+        if(cap == 0 || cap > depositorCount[msg.sender][serviceID]) {
+            pageSize = depositorCount[msg.sender][serviceID];
+        } else {
+            pageSize = cap;
+        }
+
+        for (uint256 i = 0; i < pageSize; i++) {
             address depositor = depositors[msg.sender][serviceID][0];
             refund(depositor, serviceID);
         }
-        return size;
+        return pageSize;
     }
 }
